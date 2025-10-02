@@ -24,7 +24,7 @@ public class MovementController : MonoBehaviour
         {
             if (!_walking.isPlaying)
             {
-                _walking.Play();
+                //_walking.Play();
 
             }
             

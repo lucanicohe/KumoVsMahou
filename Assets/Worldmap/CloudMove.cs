@@ -9,6 +9,13 @@ public class CloudMove : MonoBehaviour
 
     private Vector2 offset;
 
+    void Start()
+    {
+        
+        offset = Vector2.zero; 
+        cloudMaterial.mainTextureOffset = offset;
+    }
+
     void Update()
     {
         offset = cloudMaterial.mainTextureOffset;
