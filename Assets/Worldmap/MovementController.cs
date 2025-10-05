@@ -2,38 +2,45 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(CharacterController))]
 public class MovementController : MonoBehaviour
 {
-    [SerializeField] private CharacterController playermove;
     [SerializeField] private float PlayerSpeed = 3f;
-    [SerializeField] private AudioSource _walking;
+    [SerializeField] private float Gravity = -9.81f;
+    [SerializeField] private float JumpHeight = 1.5f; 
+  
 
+    private CharacterController controller;
+    private Vector3 velocity;
+    private bool isGrounded;
 
-
-    // Update is called once per frame
-    void Update()
+    private void Awake()
     {
+        controller = GetComponent<CharacterController>();
+    }
+
+    private void Update()
+    {
+        // Check if player is on ground
+        isGrounded = controller.isGrounded;
+        if (isGrounded && velocity.y < 0)
+            velocity.y = -2f; // small downward force to stick to slopes
+
+        // Movement input
         float x = Input.GetAxis("Horizontal");
         float z = Input.GetAxis("Vertical");
-
         Vector3 move = transform.right * x + transform.forward * z;
 
-        playermove.Move(move * PlayerSpeed * Time.deltaTime);
+        controller.Move(move * PlayerSpeed * Time.deltaTime);
 
-        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.A))
-        {
-            if (!_walking.isPlaying)
-            {
-                //_walking.Play();
+        // Gravity
+        velocity.y += Gravity * Time.deltaTime;
+        controller.Move(velocity * Time.deltaTime);
 
-            }
-            
-
-        }
-        else
-        {
-            _walking.Stop(); 
-        }
         
+
+        // Jump (optional)
+        if (Input.GetButtonDown("Jump") && isGrounded)
+            velocity.y = Mathf.Sqrt(JumpHeight * -2f * Gravity);
     }
 }
