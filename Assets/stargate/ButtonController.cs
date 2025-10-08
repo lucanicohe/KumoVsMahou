@@ -15,6 +15,7 @@ public class ButtonController : MonoBehaviour
 
     [Header("Gate Settings")]
     [SerializeField] private GameObject gateCollider;  
+    [SerializeField] private ParticleTimeController whooshController; // assign existing whoosh script in inspector
 
     [Header("Sequence Textures")]
     [SerializeField] private Material materialA;
@@ -34,7 +35,6 @@ public class ButtonController : MonoBehaviour
 
     private void Awake()
     {
-        // Reset or initialize static list to avoid ghost references
         if (allButtons == null)
             allButtons = new List<ButtonController>();
 
@@ -54,7 +54,6 @@ public class ButtonController : MonoBehaviour
 
     private void Start()
     {
-        // Ensure all sequence materials start white
         if (materialA != null) materialA.color = Color.white;
         if (materialB != null) materialB.color = Color.white;
         if (materialC != null) materialC.color = Color.white;
@@ -67,22 +66,15 @@ public class ButtonController : MonoBehaviour
     {
         if (isActivateButton)
         {
-            Debug.Log("[ButtonController] Activate button pressed.");
             StartCoroutine(ActivateGateSequence(currentSequence));
             return;
         }
 
-        if (isPressed)
-        {
-            Debug.Log($"[ButtonController] Button {keySymbol} ignored (already pressed).");
-            return;
-        }
+        if (isPressed) return;
 
         isPressed = true;
         currentSequence += keySymbol;
         SetColor(Color.yellow);
-
-        Debug.Log($"[ButtonController] Added '{keySymbol}' to sequence: {currentSequence}");
 
         if (currentSequence.Length >= 3)
         {
@@ -108,14 +100,11 @@ public class ButtonController : MonoBehaviour
 
         if (valid)
         {
-            Debug.Log($"[ButtonController] Valid sequence: {currentSequence} ({activeCondition})");
             readyToActivate = true;
 
             foreach (var btn in allButtons)
-            {
                 if (btn.isActivateButton)
                     btn.SetColor(Color.red);
-            }
 
             if (sequenceCoroutine != null)
             {
@@ -127,7 +116,6 @@ public class ButtonController : MonoBehaviour
         }
         else
         {
-            Debug.Log("[ButtonController] Invalid sequence, resetting.");
             ResetKeysOnly();
         }
     }
@@ -135,17 +123,13 @@ public class ButtonController : MonoBehaviour
     private IEnumerator SequenceTimeout()
     {
         yield return new WaitForSeconds(sequenceTimeout);
-        Debug.Log("[ButtonController] Sequence timed out, resetting.");
         ResetKeysOnly();
     }
 
     private IEnumerator ActivateGateSequence(string sequenceSnapshot)
     {
         if (!readyToActivate || string.IsNullOrEmpty(sequenceSnapshot))
-        {
-            Debug.Log("[ButtonController] Not ready to activate or sequence empty.");
             yield break;
-        }
 
         if (sequenceCoroutine != null)
         {
@@ -154,8 +138,6 @@ public class ButtonController : MonoBehaviour
         }
 
         ResetKeysOnly();
-
-        Debug.Log($"[ButtonController] Activating gate sequence: {sequenceSnapshot}");
 
         foreach (char c in sequenceSnapshot)
         {
@@ -177,7 +159,11 @@ public class ButtonController : MonoBehaviour
         if (gateCollider != null)
             gateCollider.SetActive(true);
 
-        Debug.Log($"[ButtonController] Gate activated for: {activeCondition}");
+        // Activate existing whoosh effect
+        if (whooshController != null)
+        {
+            whooshController.StartWhoosh();
+        }
 
         if (gateCoroutine != null)
         {
@@ -191,7 +177,6 @@ public class ButtonController : MonoBehaviour
     private IEnumerator GateActiveTimeout()
     {
         yield return new WaitForSeconds(gateActiveTimeout);
-        Debug.Log("[ButtonController] Gate timeout reached, resetting all.");
         ResetAll();
     }
 
@@ -201,15 +186,12 @@ public class ButtonController : MonoBehaviour
         readyToActivate = false;
 
         foreach (var btn in allButtons)
-        {
             if (!btn.isActivateButton)
             {
                 btn.isPressed = false;
                 btn.SetColor(Color.white);
             }
-        }
 
-        // Reset all textures to white
         if (materialA != null) materialA.color = Color.white;
         if (materialB != null) materialB.color = Color.white;
         if (materialC != null) materialC.color = Color.white;
