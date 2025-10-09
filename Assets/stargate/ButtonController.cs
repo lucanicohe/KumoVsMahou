@@ -15,7 +15,7 @@ public class ButtonController : MonoBehaviour
 
     [Header("Gate Settings")]
     [SerializeField] private GameObject gateCollider;  
-    [SerializeField] private ParticleTimeController whooshController; // assign existing whoosh script in inspector
+    [SerializeField] private ParticleTimeController whooshController;
 
     [Header("Sequence Textures")]
     [SerializeField] private Material materialA;
@@ -41,8 +41,6 @@ public class ButtonController : MonoBehaviour
         if (!allButtons.Contains(this))
             allButtons.Add(this);
 
-        SetColor(Color.white);
-
         if (gateCollider != null)
             gateCollider.SetActive(false);
     }
@@ -54,12 +52,16 @@ public class ButtonController : MonoBehaviour
 
     private void Start()
     {
-        if (materialA != null) materialA.color = Color.white;
-        if (materialB != null) materialB.color = Color.white;
-        if (materialC != null) materialC.color = Color.white;
-        if (materialD != null) materialD.color = Color.white;
-        if (materialE != null) materialE.color = Color.white;
-        if (materialF != null) materialF.color = Color.white;
+        // Ensure all chevron materials start without emission
+        DisableEmission(materialA);
+        DisableEmission(materialB);
+        DisableEmission(materialC);
+        DisableEmission(materialD);
+        DisableEmission(materialE);
+        DisableEmission(materialF);
+        
+        // Disable button emission at start
+        DisableButtonEmission();
     }
 
     public void Touched()
@@ -74,7 +76,9 @@ public class ButtonController : MonoBehaviour
 
         isPressed = true;
         currentSequence += keySymbol;
-        SetColor(Color.yellow);
+
+        // Enable emission on this button
+        EnableButtonEmission(Color.white);
 
         if (currentSequence.Length >= 3)
         {
@@ -104,7 +108,7 @@ public class ButtonController : MonoBehaviour
 
             foreach (var btn in allButtons)
                 if (btn.isActivateButton)
-                    btn.SetColor(Color.red);
+                    btn.EnableButtonEmission(Color.red);
 
             if (sequenceCoroutine != null)
             {
@@ -145,25 +149,24 @@ public class ButtonController : MonoBehaviour
 
             switch (c)
             {
-                case 'A': if (materialA != null) materialA.color = Color.yellow; break;
-                case 'B': if (materialB != null) materialB.color = Color.yellow; break;
-                case 'C': if (materialC != null) materialC.color = Color.yellow; break;
-                case 'D': if (materialD != null) materialD.color = Color.yellow; break;
-                case 'E': if (materialE != null) materialE.color = Color.yellow; break;
-                case 'F': if (materialF != null) materialF.color = Color.yellow; break;
+                case 'A': EnableEmission(materialA, Color.white); break;
+                case 'B': EnableEmission(materialB, Color.white); break;
+                case 'C': EnableEmission(materialC, Color.white); break;
+                case 'D': EnableEmission(materialD, Color.white); break;
+                case 'E': EnableEmission(materialE, Color.white); break;
+                case 'F': EnableEmission(materialF, Color.white); break;
             }
         }
 
         yield return new WaitForSeconds(1f);
 
+        // Activate the gate collider
         if (gateCollider != null)
             gateCollider.SetActive(true);
 
-        // Activate existing whoosh effect
+        // Start the particle effect
         if (whooshController != null)
-        {
-            whooshController.StartWhoosh();
-        }
+            // whooshController.StartWhoosh();  //WHOOOOOOOOOOOOOOOOOOOOOOOOOSHSHHHHHHHHH
 
         if (gateCoroutine != null)
         {
@@ -186,18 +189,21 @@ public class ButtonController : MonoBehaviour
         readyToActivate = false;
 
         foreach (var btn in allButtons)
+        {
             if (!btn.isActivateButton)
             {
                 btn.isPressed = false;
-                btn.SetColor(Color.white);
+                btn.DisableButtonEmission();
             }
+        }
 
-        if (materialA != null) materialA.color = Color.white;
-        if (materialB != null) materialB.color = Color.white;
-        if (materialC != null) materialC.color = Color.white;
-        if (materialD != null) materialD.color = Color.white;
-        if (materialE != null) materialE.color = Color.white;
-        if (materialF != null) materialF.color = Color.white;
+        // Disable emission for all chevron textures
+        DisableEmission(materialA);
+        DisableEmission(materialB);
+        DisableEmission(materialC);
+        DisableEmission(materialD);
+        DisableEmission(materialE);
+        DisableEmission(materialF);
     }
 
     private void ResetAll()
@@ -209,20 +215,58 @@ public class ButtonController : MonoBehaviour
         foreach (var btn in allButtons)
         {
             btn.isPressed = false;
-            btn.SetColor(Color.white);
+            btn.DisableButtonEmission();
         }
 
         if (gateCollider != null)
             gateCollider.SetActive(false);
     }
 
-    public void SetColor(Color c)
+    public string GetActiveCondition() => activeCondition;
+    public void ClearActiveCondition() => activeCondition = "";
+
+    // --- Button emission (for the button's own renderer material) ---
+    private void EnableButtonEmission(Color color)
     {
-        if (keyRenderer != null)
-            keyRenderer.material.color = c;
+        if (keyRenderer == null) return;
+        
+        Material mat = keyRenderer.material;
+        mat.EnableKeyword("_EMISSION");
+        
+        // Red for activate button, gray for normal buttons
+        if (color == Color.red)
+        {
+            mat.SetColor("_EmissionColor", Color.red);
+        }
+        else
+        {
+            // Use 170/255 = 0.667 for RGB values (170, 170, 170)
+            Color emissionColor = new Color(170f / 255f, 170f / 255f, 170f / 255f);
+            mat.SetColor("_EmissionColor", emissionColor);
+        }
     }
 
-    public string GetActiveCondition() => activeCondition;
+    private void DisableButtonEmission()
+    {
+        if (keyRenderer == null) return;
+        
+        Material mat = keyRenderer.material;
+        mat.DisableKeyword("_EMISSION");
+        mat.SetColor("_EmissionColor", Color.black);
+    }
 
-    public void ClearActiveCondition() => activeCondition = "";
+    // --- Chevron emission helpers ---
+    private void EnableEmission(Material mat, Color color)
+    {
+        if (mat == null) return;
+        mat.EnableKeyword("_EMISSION");
+        mat.SetColor("_EmissionColor", color);
+    }
+
+    private void DisableEmission(Material mat)
+    {
+        if (mat == null) return;
+        mat.DisableKeyword("_EMISSION");
+        mat.SetColor("_EmissionColor", Color.black);
+    }
 }

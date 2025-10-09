@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine; 
+using UnityEngine;
 
 public class CloudMove : MonoBehaviour
 {
@@ -11,16 +11,24 @@ public class CloudMove : MonoBehaviour
 
     void Start()
     {
-        
-        offset = Vector2.zero; 
-        cloudMaterial.mainTextureOffset = offset;
+        offset = Vector2.zero;
+        // URP Lit shader uses _BaseMap instead of _MainTex
+        cloudMaterial.SetTextureOffset("_BaseMap", offset);
     }
 
     void Update()
     {
-        offset = cloudMaterial.mainTextureOffset;
+        // Get current offset
+        offset = cloudMaterial.GetTextureOffset("_BaseMap");
+        
+        // Scroll the texture
         offset.x += scrollSpeed * Time.deltaTime;
-        if (offset.x > 1f) offset.x -= 1f;
-        cloudMaterial.SetTextureOffset("_MainTex", offset);
+        
+        // Wrap around when offset exceeds 1
+        if (offset.x > 1f) 
+            offset.x -= 1f;
+        
+        // Apply the new offset to URP's base map
+        cloudMaterial.SetTextureOffset("_BaseMap", offset);
     }
 }
