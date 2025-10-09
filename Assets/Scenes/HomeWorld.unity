@@ -1769,6 +1769,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -9102117403313577056, guid: 9d718ff6b2b5d4e8a88998bc2448dfb5, type: 3}
+      propertyPath: m_Name
+      value: SPIDERBODY
+      objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9d718ff6b2b5d4e8a88998bc2448dfb5, type: 3}
       propertyPath: m_LocalPosition.x
       value: -470.711
@@ -1823,7 +1827,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: b3f465fc440bb4aa28ffb69dbe02db11, type: 2}
     - target: {fileID: 919132149155446097, guid: 9d718ff6b2b5d4e8a88998bc2448dfb5, type: 3}
       propertyPath: m_Name
-      value: spider (1)
+      value: Stone Spider
       objectReference: {fileID: 0}
     - target: {fileID: 4728225312481372406, guid: 9d718ff6b2b5d4e8a88998bc2448dfb5, type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -1843,7 +1847,13 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 9d718ff6b2b5d4e8a88998bc2448dfb5, type: 3}
       insertIndex: -1
       addedObject: {fileID: 543450652177515433}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -9102117403313577056, guid: 9d718ff6b2b5d4e8a88998bc2448dfb5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2007535374}
+    - targetCorrespondingSourceObject: {fileID: -9102117403313577056, guid: 9d718ff6b2b5d4e8a88998bc2448dfb5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2007535373}
   m_SourcePrefab: {fileID: 100100000, guid: 9d718ff6b2b5d4e8a88998bc2448dfb5, type: 3}
 --- !u!1 &604121585
 GameObject:
@@ -3171,6 +3181,11 @@ Light:
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+--- !u!1 &959870615 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 9d718ff6b2b5d4e8a88998bc2448dfb5, type: 3}
+  m_PrefabInstance: {fileID: 593447938}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
@@ -4010,6 +4025,44 @@ MeshRenderer:
   m_CorrespondingSourceObject: {fileID: 7416969812031155216, guid: f5631f8024e794d148c1ce407851530b, type: 3}
   m_PrefabInstance: {fileID: 1593723169}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1265723608 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 5d950e43b23e64cb5b6554cfe3efaef4, type: 3}
+  m_PrefabInstance: {fileID: 1756320827}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1265723609
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1265723608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63358a572ba2b484187cbbb928d1f42f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentType: 10
+  currentColor: 10
+  castPoint: {fileID: 457650503}
+  castRange: 50
+  magicParticles: {fileID: 1713292939}
+--- !u!114 &1265723612
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1265723608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4afe259b6066b43489c1affbbb360fa1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 320
+  maxMana: 320
+  currentHealth: 0
+  currentMana: 0
 --- !u!1 &1390957718
 GameObject:
   m_ObjectHideFlags: 0
@@ -9752,7 +9805,13 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 5d950e43b23e64cb5b6554cfe3efaef4, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1713292937}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 5d950e43b23e64cb5b6554cfe3efaef4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1265723612}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 5d950e43b23e64cb5b6554cfe3efaef4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1265723609}
   m_SourcePrefab: {fileID: 100100000, guid: 5d950e43b23e64cb5b6554cfe3efaef4, type: 3}
 --- !u!1 &1879162955
 GameObject:
@@ -10006,6 +10065,51 @@ MeshRenderer:
   m_CorrespondingSourceObject: {fileID: -3946311631865051095, guid: f5631f8024e794d148c1ce407851530b, type: 3}
   m_PrefabInstance: {fileID: 1593723169}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2007535369 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -9102117403313577056, guid: 9d718ff6b2b5d4e8a88998bc2448dfb5, type: 3}
+  m_PrefabInstance: {fileID: 593447938}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2007535373
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2007535369}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6165d55f42dd343419a0ff8d410b9af8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  variant: 1
+  health: 40
+  damagePerSecond: 30
+  magicStonePrefab: {fileID: 0}
+  player: {fileID: 442211266}
+  rootSpider: {fileID: 959870615}
+--- !u!64 &2007535374
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2007535369}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -8908299743826163017, guid: 9d718ff6b2b5d4e8a88998bc2448dfb5, type: 3}
 --- !u!1 &2009079586
 GameObject:
   m_ObjectHideFlags: 0
