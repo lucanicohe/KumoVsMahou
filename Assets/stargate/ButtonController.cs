@@ -202,7 +202,9 @@ public class ButtonController : MonoBehaviour
 
         // Start the particle effect
         if (whooshController != null)
-            // whooshController.StartWhoosh()
+        {
+            whooshController.StartWhoosh(); // WHOOOOOOOOOOOOOOOOOOOOOOOOOSHSHHHHHHHHH
+        }
 
         // Start the 30 second gate timeout
         if (gateCoroutine != null)
