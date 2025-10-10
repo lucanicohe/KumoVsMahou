@@ -18,6 +18,13 @@ public class ButtonController : MonoBehaviour
     [SerializeField] private Sprite whiteSprite;
     [SerializeField] private Light buttonLight;
 
+    [Header("Button Audio")]
+    [SerializeField] private AudioSource _buttonpress; 
+    [SerializeField] private AudioSource _error;
+    [SerializeField] private AudioSource _dial;
+    [SerializeField] private AudioSource _whoosh;
+    //[SerializeField] private AudioSource _activatebutton;
+
     [Header("Gate Settings")]
     [SerializeField] private GameObject gateCollider;
     [SerializeField] private ParticleTimeController whooshController;
@@ -79,6 +86,12 @@ public class ButtonController : MonoBehaviour
 
     public void Touched()
     {
+        // Play the button press sound
+        if (_buttonpress != null)
+        {
+            _buttonpress.Play();
+        }
+
         if (isActivateButton)
         {
             StartCoroutine(ActivateGateSequence(currentSequence));
@@ -96,7 +109,19 @@ public class ButtonController : MonoBehaviour
         // Enable corresponding chevron emission with delay
         chevronCoroutine = StartCoroutine(EnableChevronWithDelay(keySymbol, 0.5f));
 
-        if (currentSequence.Length >= 3)
+        // Error check: if sequence length exceeds 3, treat as wrong sequence
+        if (currentSequence.Length > 3)
+        {
+            // Wrong sequence - reset and play error sound
+            if (_error != null)
+            {
+                _error.Play();
+            }
+            ResetKeysOnly();
+            return;
+        }
+
+        if (currentSequence.Length == 3)
         {
             CheckSequence();
         }
@@ -122,18 +147,31 @@ public class ButtonController : MonoBehaviour
         {
             readyToActivate = true;
 
-            // Enable light for activate button
+            // Find and enable light for the activate button, and play the activation sound
             foreach (var btn in allButtons)
             {
-                if (btn.isActivateButton && btn.buttonLight != null)
+                if (btn.isActivateButton)
                 {
-                    btn.buttonLight.enabled = true;
+                    if (btn.buttonLight != null)
+                    {
+                        btn.buttonLight.enabled = true;
+                    }
+
+                    // Play the activate button sound
+                    //if (btn._activatebutton != null)
+                    //{
+                        //btn._activatebutton.Play();
+                    //}
                 }
             }
         }
         else
         {
-            // Wrong sequence - reset everything
+            // Wrong sequence - reset everything and play error sound
+            if (_error != null)
+            {
+                _error.Play();
+            }
             ResetKeysOnly();
         }
     }
@@ -152,13 +190,19 @@ public class ButtonController : MonoBehaviour
         // Chevrons are already lit from button presses, just activate the gate
         yield return new WaitForSeconds(1f);
 
+        // Play the whoosh sound before activating the gate
+        if (_whoosh != null)
+        {
+            _whoosh.Play();
+        }
+
         // Activate the gate collider
         if (gateCollider != null)
             gateCollider.SetActive(true);
 
         // Start the particle effect
         if (whooshController != null)
-            // whooshController.StartWhoosh();  //WHOOOOOOOOOOOOOOOOOOOOOOOOOSHSHHHHHHHHH
+            // whooshController.StartWhoosh()
 
         // Start the 30 second gate timeout
         if (gateCoroutine != null)
@@ -262,6 +306,12 @@ public class ButtonController : MonoBehaviour
     // --- Enable chevron emission when button is pressed ---
     private void EnableChevronForKey(string key)
     {
+        // Play the dial sound when a chevron material is activated
+        if (_dial != null)
+        {
+            _dial.Play();
+        }
+
         switch (key)
         {
             case "A": EnableEmission(materialA, Color.white); break;
