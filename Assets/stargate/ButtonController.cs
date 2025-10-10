@@ -7,14 +7,19 @@ public class ButtonController : MonoBehaviour
     public static List<ButtonController> allButtons = new List<ButtonController>();
 
     [Header("Button Settings")]
-    [SerializeField] private string keySymbol;         
-    [SerializeField] private Renderer keyRenderer;     
-    [SerializeField] private bool isActivateButton;    
+    [SerializeField] private string keySymbol;
+    [SerializeField] private bool isActivateButton;
     [SerializeField] private float sequenceTimeout = 9f;
     [SerializeField] private float gateActiveTimeout = 30f;
 
+    [Header("Button Visual Components")]
+    [SerializeField] private SpriteRenderer buttonSpriteRenderer;
+    [SerializeField] private Sprite blackSprite;
+    [SerializeField] private Sprite whiteSprite;
+    [SerializeField] private Light buttonLight;
+
     [Header("Gate Settings")]
-    [SerializeField] private GameObject gateCollider;  
+    [SerializeField] private GameObject gateCollider;
     [SerializeField] private ParticleTimeController whooshController;
 
     [Header("Sequence Textures")]
@@ -30,8 +35,8 @@ public class ButtonController : MonoBehaviour
     private static bool readyToActivate = false;
 
     private bool isPressed = false;
-    private Coroutine sequenceCoroutine;
     private Coroutine gateCoroutine;
+    private Coroutine chevronCoroutine;
 
     private void Awake()
     {
@@ -60,8 +65,16 @@ public class ButtonController : MonoBehaviour
         DisableEmission(materialE);
         DisableEmission(materialF);
         
-        // Disable button emission at start
-        DisableButtonEmission();
+        // Set button sprite to black and disable light at start
+        if (!isActivateButton && buttonSpriteRenderer != null && blackSprite != null)
+        {
+            buttonSpriteRenderer.sprite = blackSprite;
+        }
+        
+        if (buttonLight != null)
+        {
+            buttonLight.enabled = false;
+        }
     }
 
     public void Touched()
@@ -77,8 +90,11 @@ public class ButtonController : MonoBehaviour
         isPressed = true;
         currentSequence += keySymbol;
 
-        // Enable emission on this button
-        EnableButtonEmission(Color.white);
+        // Change sprite to white and enable light
+        SetButtonActive(true);
+
+        // Enable corresponding chevron emission with delay
+        chevronCoroutine = StartCoroutine(EnableChevronWithDelay(keySymbol, 0.5f));
 
         if (currentSequence.Length >= 3)
         {
@@ -106,20 +122,18 @@ public class ButtonController : MonoBehaviour
         {
             readyToActivate = true;
 
+            // Enable light for activate button
             foreach (var btn in allButtons)
-                if (btn.isActivateButton)
-                    btn.EnableButtonEmission(Color.red);
-
-            if (sequenceCoroutine != null)
             {
-                StopCoroutine(sequenceCoroutine);
-                sequenceCoroutine = null;
+                if (btn.isActivateButton && btn.buttonLight != null)
+                {
+                    btn.buttonLight.enabled = true;
+                }
             }
-
-            sequenceCoroutine = StartCoroutine(SequenceTimeout());
         }
         else
         {
+            // Wrong sequence - reset everything
             ResetKeysOnly();
         }
     }
@@ -135,29 +149,7 @@ public class ButtonController : MonoBehaviour
         if (!readyToActivate || string.IsNullOrEmpty(sequenceSnapshot))
             yield break;
 
-        if (sequenceCoroutine != null)
-        {
-            StopCoroutine(sequenceCoroutine);
-            sequenceCoroutine = null;
-        }
-
-        ResetKeysOnly();
-
-        foreach (char c in sequenceSnapshot)
-        {
-            yield return new WaitForSeconds(1f);
-
-            switch (c)
-            {
-                case 'A': EnableEmission(materialA, Color.white); break;
-                case 'B': EnableEmission(materialB, Color.white); break;
-                case 'C': EnableEmission(materialC, Color.white); break;
-                case 'D': EnableEmission(materialD, Color.white); break;
-                case 'E': EnableEmission(materialE, Color.white); break;
-                case 'F': EnableEmission(materialF, Color.white); break;
-            }
-        }
-
+        // Chevrons are already lit from button presses, just activate the gate
         yield return new WaitForSeconds(1f);
 
         // Activate the gate collider
@@ -168,6 +160,7 @@ public class ButtonController : MonoBehaviour
         if (whooshController != null)
             // whooshController.StartWhoosh();  //WHOOOOOOOOOOOOOOOOOOOOOOOOOSHSHHHHHHHHH
 
+        // Start the 30 second gate timeout
         if (gateCoroutine != null)
         {
             StopCoroutine(gateCoroutine);
@@ -193,17 +186,28 @@ public class ButtonController : MonoBehaviour
             if (!btn.isActivateButton)
             {
                 btn.isPressed = false;
-                btn.DisableButtonEmission();
+                btn.SetButtonActive(false);
+                
+                // Stop any pending chevron coroutines
+                if (btn.chevronCoroutine != null)
+                {
+                    btn.StopCoroutine(btn.chevronCoroutine);
+                    btn.chevronCoroutine = null;
+                }
             }
+            
+            // Disable activate button light when resetting
+            if (btn.isActivateButton && btn.buttonLight != null)
+                btn.buttonLight.enabled = false;
+            
+            // Disable emission for all chevron textures on this button instance
+            btn.DisableEmission(btn.materialA);
+            btn.DisableEmission(btn.materialB);
+            btn.DisableEmission(btn.materialC);
+            btn.DisableEmission(btn.materialD);
+            btn.DisableEmission(btn.materialE);
+            btn.DisableEmission(btn.materialF);
         }
-
-        // Disable emission for all chevron textures
-        DisableEmission(materialA);
-        DisableEmission(materialB);
-        DisableEmission(materialC);
-        DisableEmission(materialD);
-        DisableEmission(materialE);
-        DisableEmission(materialF);
     }
 
     private void ResetAll()
@@ -215,7 +219,7 @@ public class ButtonController : MonoBehaviour
         foreach (var btn in allButtons)
         {
             btn.isPressed = false;
-            btn.DisableButtonEmission();
+            btn.SetButtonActive(false);
         }
 
         if (gateCollider != null)
@@ -225,34 +229,48 @@ public class ButtonController : MonoBehaviour
     public string GetActiveCondition() => activeCondition;
     public void ClearActiveCondition() => activeCondition = "";
 
-    // --- Button emission (for the button's own renderer material) ---
-    private void EnableButtonEmission(Color color)
+    // --- Button sprite and light control ---
+    private void SetButtonActive(bool active)
     {
-        if (keyRenderer == null) return;
-        
-        Material mat = keyRenderer.material;
-        mat.EnableKeyword("_EMISSION");
-        
-        // Red for activate button, gray for normal buttons
-        if (color == Color.red)
+        // For activate button, only control light
+        if (isActivateButton)
         {
-            mat.SetColor("_EmissionColor", Color.red);
+            if (buttonLight != null)
+                buttonLight.enabled = active;
+            return;
         }
-        else
+
+        // For regular buttons, swap sprite and control light
+        if (buttonSpriteRenderer != null)
         {
-            // Use 170/255 = 0.667 for RGB values (170, 170, 170)
-            Color emissionColor = new Color(170f / 255f, 170f / 255f, 170f / 255f);
-            mat.SetColor("_EmissionColor", emissionColor);
+            buttonSpriteRenderer.sprite = active ? whiteSprite : blackSprite;
+        }
+
+        if (buttonLight != null)
+        {
+            buttonLight.enabled = active;
         }
     }
 
-    private void DisableButtonEmission()
+    // --- Enable chevron emission with delay ---
+    private IEnumerator EnableChevronWithDelay(string key, float delay)
     {
-        if (keyRenderer == null) return;
-        
-        Material mat = keyRenderer.material;
-        mat.DisableKeyword("_EMISSION");
-        mat.SetColor("_EmissionColor", Color.black);
+        yield return new WaitForSeconds(delay);
+        EnableChevronForKey(key);
+    }
+
+    // --- Enable chevron emission when button is pressed ---
+    private void EnableChevronForKey(string key)
+    {
+        switch (key)
+        {
+            case "A": EnableEmission(materialA, Color.white); break;
+            case "B": EnableEmission(materialB, Color.white); break;
+            case "C": EnableEmission(materialC, Color.white); break;
+            case "D": EnableEmission(materialD, Color.white); break;
+            case "E": EnableEmission(materialE, Color.white); break;
+            case "F": EnableEmission(materialF, Color.white); break;
+        }
     }
 
     // --- Chevron emission helpers ---
