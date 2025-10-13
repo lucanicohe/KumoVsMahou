@@ -22,15 +22,14 @@ public class SpiderStats : MonoBehaviour
     public int damagePerSecond = 20;
 
     [Header("Loot")]
-    public GameObject magicStonePrefab; // このスパイダーがドロップするストーン
+    public GameObject magicStonePrefab;
 
     [Header("References")]
-    public Transform player; // プレイヤーの位置
+    public Transform player;
     [SerializeField] private GameObject rootSpider; 
 
     void Start()
     {
-        // プレイヤーを探す
         if (player == null)
         {
             GameObject p = GameObject.FindGameObjectWithTag("Player");
@@ -39,13 +38,11 @@ public class SpiderStats : MonoBehaviour
         UpdateStats();
     }
 
-    // Inspectorで値を変更したときに自動的にstatsを更新
     private void OnValidate()
     {
         UpdateStats();
     }
 
-    // variantごとにstatsを自動設定
     private void UpdateStats()
     {
         switch (variant)
@@ -65,7 +62,6 @@ public class SpiderStats : MonoBehaviour
         }
     }
 
-    // ダメージを受ける (UltimateMagicStaffから呼ばれる)
     public void TakeDamage(int amount)
     {
         health -= amount;
@@ -75,20 +71,16 @@ public class SpiderStats : MonoBehaviour
             Die();
     }
 
-    // ダメージ値を取得（AIスクリプトが使用）
     public int GetDamage() => damagePerSecond;
 
-    // 死亡処理
     void Die()
     {
         Debug.Log($"{variant} spider died!");
 
-        // 魔法ストーンをドロップ
         if (magicStonePrefab != null)
             Instantiate(magicStonePrefab, transform.position, Quaternion.identity);
 
         
-        // このスパイダーを破棄
         if (rootSpider != null)
             Destroy(rootSpider);
         else
