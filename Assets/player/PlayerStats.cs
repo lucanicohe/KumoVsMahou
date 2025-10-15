@@ -12,6 +12,11 @@ public class PlayerStats : MonoBehaviour
     public int currentHealth;
     public int currentMana;
 
+    //　攻撃した後のフリーズ時間
+    [SerializeField]
+    private float attackCooldown = 0.5f;
+    private bool isCooldown = false;
+
     // Start is called before the first frame update
     void Start()
     {
