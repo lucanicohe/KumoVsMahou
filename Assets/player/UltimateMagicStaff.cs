@@ -26,9 +26,8 @@ public enum MagicColor
 
 public class UltimateMagicStaff : MonoBehaviour
 {
-    [Header("Magic Selection")]
-    [SerializeField] private MagicType currentType = MagicType.Shadow;
-    [SerializeField] private MagicColor currentColor = MagicColor.Black;
+    [Header("Currently Attached Stone")]
+    [SerializeField] private MagicStone attachedStone; // Shows which stone is equipped
 
     [Header("Magic Prefab")]
     [SerializeField] private GameObject magicPrefab;
@@ -38,7 +37,26 @@ public class UltimateMagicStaff : MonoBehaviour
     [SerializeField] private float castRange = 50f;
     [SerializeField] private float castCooldown = 0.5f;
 
+    [Header("Magic Type Textures")]
+    [SerializeField] private Texture2D shadowTex;
+    [SerializeField] private Texture2D stoneTex;
+    [SerializeField] private Texture2D fireTex;
+    [SerializeField] private Texture2D windTex;
+    [SerializeField] private Texture2D iceTex;
+    [SerializeField] private Texture2D waterTex;
+    [SerializeField] private Texture2D lightTex;
+
+    [Header("Magic Type Audio Clips")]
+    [SerializeField] private AudioClip shadowClip;
+    [SerializeField] private AudioClip stoneClip;
+    [SerializeField] private AudioClip fireClip;
+    [SerializeField] private AudioClip windClip;
+    [SerializeField] private AudioClip iceClip;
+    [SerializeField] private AudioClip waterClip;
+    [SerializeField] private AudioClip lightClip;
+
     private PlayerStats playerStats;
+    private AudioSource audioSource;
     private float castTimer = 0f;
 
     void Start()
@@ -49,6 +67,12 @@ public class UltimateMagicStaff : MonoBehaviour
             Debug.LogError("PlayerStats not found on player!");
             enabled = false;
             return;
+        }
+
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
         }
 
         if (magicPrefab == null)
@@ -64,12 +88,37 @@ public class UltimateMagicStaff : MonoBehaviour
         if (castTimer > 0)
             castTimer -= Time.deltaTime;
 
-        if (Input.GetMouseButton(0) && castTimer <= 0f)
+        if (Input.GetKeyDown(KeyCode.C) && castTimer <= 0f)
             StartCasting();
+    }
+
+    // Public method for stones to attach themselves
+    public void AttachStone(MagicStone stone)
+    {
+        attachedStone = stone;
+        Debug.Log($"Stone attached: {stone.stoneColor} {stone.stoneType}");
+    }
+
+    // Public method to detach stone (optional - for dropping stones)
+    public void DetachStone()
+    {
+        attachedStone = null;
+        Debug.Log("Stone detached from staff");
     }
 
     void StartCasting()
     {
+        // Check if a stone is attached
+        if (attachedStone == null)
+        {
+            Debug.Log("No magic stone attached! Cannot cast.");
+            return;
+        }
+
+        // Get the type and color from the attached stone
+        MagicType currentType = attachedStone.GetMagicType();
+        MagicColor currentColor = attachedStone.GetMagicColor();
+
         int manaCost = (int)currentType;
         if (!playerStats.HasEnoughMana(manaCost))
         {
@@ -80,9 +129,10 @@ public class UltimateMagicStaff : MonoBehaviour
         playerStats.ConsumeMana(manaCost);
         castTimer = castCooldown;
 
+        PlayMagicSound(currentType);
+
         GameObject magicInstance = Instantiate(magicPrefab, castPoint.position, castPoint.rotation);
 
-        // Find all particle systems, including under disabled parents
         ParticleSystem[] allParticles = magicInstance.GetComponentsInChildren<ParticleSystem>(true);
         if (allParticles.Length > 0)
         {
@@ -94,15 +144,25 @@ public class UltimateMagicStaff : MonoBehaviour
                     Material matInstance = new Material(renderer.sharedMaterial);
                     renderer.material = matInstance;
 
-                    Color magicColor = GetColorFromEnum(currentColor);
-                    matInstance.SetColor("_ColorA", magicColor);
-                    matInstance.SetColor("_ColorB", magicColor);
+                    Color colorA, colorB;
+                    GetColorPairFromEnum(currentColor, out colorA, out colorB);
+                    matInstance.SetColor("_ColorA", colorA);
+                    matInstance.SetColor("_ColorB", colorB);
 
-                    float tilingValue = GetTilingFromType(currentType);
-                    Vector4 dissolveTexST = matInstance.GetVector("_DissolveTex_ST");
-                    dissolveTexST.x = tilingValue;
-                    dissolveTexST.y = tilingValue;
-                    matInstance.SetVector("_DissolveTex_ST", dissolveTexST);
+                    Texture2D mainTex = GetMainTexFromType(currentType);
+                    Texture2D dissolveTex = GetDissolveTexFromType(currentType);
+
+                    if (mainTex != null)
+                        matInstance.SetTexture("_MainTex", mainTex);
+                    if (dissolveTex != null)
+                        matInstance.SetTexture("_DissolveTex", dissolveTex);
+
+                    float scrollSpeedY = GetScrollSpeedYFromType(currentType);
+                    Vector2 currentScrollSpeed = matInstance.GetVector("_ScrollSpeed");
+                    currentScrollSpeed.y = scrollSpeedY;
+                    matInstance.SetVector("_ScrollSpeed", currentScrollSpeed);
+
+                    Debug.Log($"Casting: {currentColor} {currentType}, ColorA={colorA}, ColorB={colorB}");
                 }
 
                 ps.Play();
@@ -113,14 +173,38 @@ public class UltimateMagicStaff : MonoBehaviour
         }
         else
         {
-            Debug.LogError("No ParticleSystem found in spawned prefab (including disabled ones)!");
+            Debug.LogError("No ParticleSystem found in spawned prefab!");
             Destroy(magicInstance, 0.1f);
         }
 
-        CastRaycast();
+        CastRaycast(currentColor);
     }
 
-    void CastRaycast()
+    void PlayMagicSound(MagicType type)
+    {
+        AudioClip clip = GetAudioClipFromType(type);
+        if (clip != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(clip);
+        }
+    }
+
+    AudioClip GetAudioClipFromType(MagicType type)
+    {
+        switch (type)
+        {
+            case MagicType.Shadow: return shadowClip;
+            case MagicType.Stone: return stoneClip;
+            case MagicType.Fire: return fireClip;
+            case MagicType.Wind: return windClip;
+            case MagicType.Ice: return iceClip;
+            case MagicType.Water: return waterClip;
+            case MagicType.Light: return lightClip;
+            default: return null;
+        }
+    }
+
+    void CastRaycast(MagicColor currentColor)
     {
         Ray ray;
         if (Camera.main != null)
@@ -147,22 +231,76 @@ public class UltimateMagicStaff : MonoBehaviour
         Debug.DrawRay(ray.origin, ray.direction * castRange, Color.red, 0.2f);
     }
 
-    Color GetColorFromEnum(MagicColor c)
+    void GetColorPairFromEnum(MagicColor c, out Color colorA, out Color colorB)
     {
         switch (c)
         {
-            case MagicColor.Black: return new Color(0.1f, 0.1f, 0.1f);
-            case MagicColor.Brown: return new Color(0.6f, 0.4f, 0.2f);
-            case MagicColor.Red: return Color.red;
-            case MagicColor.Yellow: return Color.yellow;
-            case MagicColor.Cyan: return Color.cyan;
-            case MagicColor.Blue: return Color.blue;
-            case MagicColor.White: return Color.white;
-            default: return Color.white;
+            case MagicColor.Black:
+                colorA = new Color(0.1f, 0.1f, 0.1f);
+                colorB = new Color(0.3f, 0.3f, 0.3f);
+                break;
+            case MagicColor.Brown:
+                colorA = new Color(0.6f, 0.4f, 0.2f);
+                colorB = new Color(0.1f, 0.1f, 0.1f);
+                break;
+            case MagicColor.Red:
+                colorA = Color.red;
+                colorB = Color.yellow;
+                break;
+            case MagicColor.Yellow:
+                colorA = Color.yellow;
+                colorB = new Color(1f, 0.6f, 0f);
+                break;
+            case MagicColor.Cyan:
+                colorA = Color.cyan;
+                colorB = Color.white;
+                break;
+            case MagicColor.Blue:
+                colorA = Color.blue;
+                colorB = Color.cyan;
+                break;
+            case MagicColor.White:
+                colorA = Color.white;
+                colorB = new Color(0.9f, 0.95f, 1f);
+                break;
+            default:
+                colorA = Color.white;
+                colorB = Color.white;
+                break;
         }
     }
 
-    float GetTilingFromType(MagicType type)
+    Texture2D GetMainTexFromType(MagicType type)
+    {
+        switch (type)
+        {
+            case MagicType.Shadow: return shadowTex;
+            case MagicType.Stone: return stoneTex;
+            case MagicType.Fire: return fireTex;
+            case MagicType.Wind: return windTex;
+            case MagicType.Ice: return iceTex;
+            case MagicType.Water: return waterTex;
+            case MagicType.Light: return lightTex;
+            default: return null;
+        }
+    }
+
+    Texture2D GetDissolveTexFromType(MagicType type)
+    {
+        switch (type)
+        {
+            case MagicType.Shadow: return shadowTex;
+            case MagicType.Stone: return stoneTex;
+            case MagicType.Fire: return fireTex;
+            case MagicType.Wind: return windTex;
+            case MagicType.Ice: return iceTex;
+            case MagicType.Water: return waterTex;
+            case MagicType.Light: return lightTex;
+            default: return null;
+        }
+    }
+
+    float GetScrollSpeedYFromType(MagicType type)
     {
         switch (type)
         {

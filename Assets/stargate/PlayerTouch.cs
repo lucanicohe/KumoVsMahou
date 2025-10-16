@@ -24,9 +24,12 @@ public class PlayerTouch : MonoBehaviour
                     Debug.Log($"[PlayerTouch] Pressing button: {button.name}");
                     button.Touched();
                 }
-                else
+
+                MagicForge forge = hit.collider.GetComponent<MagicForge>();
+                if (forge != null)
                 {
-                    Debug.Log("[PlayerTouch] No ButtonController found on hit object.");
+                    Debug.Log($"[PlayerTouch] Interacting with forge: {forge.name}");
+                    forge.Touched();
                 }
             }
             else
