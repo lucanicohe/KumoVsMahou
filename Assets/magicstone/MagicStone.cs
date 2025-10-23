@@ -45,7 +45,7 @@ public class MagicStone : MonoBehaviour
         UpdateStoneAppearance();
     }
 
-    void UpdateStoneAppearance()
+    public void UpdateStoneAppearance()
     {
         ActivateModelForType(stoneType);
         UpdateMaterialColor(stoneColor);
