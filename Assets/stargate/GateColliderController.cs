@@ -5,13 +5,16 @@ using UnityEngine.SceneManagement;
 
 public class GateColliderController : MonoBehaviour
 {
-    [SerializeField] private string defaultWorldName; // optional fallback, e.g., "HomeWorld"
+    [SerializeField] private string defaultWorldName; // maybe not needed?
 
     private void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag("Player")) return;
 
-        // Get the active condition from ButtonController
+
+
+
+        //  the active condition from ButtonController
         string condition = ButtonController.allButtons.Count > 0 ? ButtonController.allButtons[0].GetActiveCondition() : "";
 
         if (string.IsNullOrEmpty(condition))
@@ -20,7 +23,10 @@ public class GateColliderController : MonoBehaviour
             return;
         }
 
-        // Load scene based on condition
+
+
+
+        // scene based on condition
         switch (condition)
         {
             case "home": SceneManager.LoadScene("HomeWorld"); break;
@@ -42,7 +48,10 @@ public class GateColliderController : MonoBehaviour
                 break;
         }
 
-        // Clear condition so gate can't be reused until new sequence
+
+
+
+        //  condition so gate can't be reused until new sequence
         foreach (var btn in ButtonController.allButtons)
         {
             btn.ClearActiveCondition();

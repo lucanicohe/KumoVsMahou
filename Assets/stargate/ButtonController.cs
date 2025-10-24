@@ -4,32 +4,45 @@ using UnityEngine;
 
 public class ButtonController : MonoBehaviour
 {
+
+
+
+    
     public static List<ButtonController> allButtons = new List<ButtonController>();
 
-    [Header("Button Settings")]
+    // buttons 
     [SerializeField] private string keySymbol;
     [SerializeField] private bool isActivateButton;
     [SerializeField] private float sequenceTimeout = 9f;
     [SerializeField] private float gateActiveTimeout = 30f;
 
-    [Header("Button Visual Components")]
+
+
+
+    // visual components 
     [SerializeField] private SpriteRenderer buttonSpriteRenderer;
     [SerializeField] private Sprite blackSprite;
     [SerializeField] private Sprite whiteSprite;
     [SerializeField] private Light buttonLight;
 
-    [Header("Button Audio")]
+
+
+    //audio SE
     [SerializeField] private AudioSource _buttonpress; 
     [SerializeField] private AudioSource _error;
     [SerializeField] private AudioSource _dial;
     [SerializeField] private AudioSource _whoosh;
     //[SerializeField] private AudioSource _activatebutton;
 
-    [Header("Gate Settings")]
+
+
+    // gate settings 
     [SerializeField] private GameObject gateCollider;
     [SerializeField] private ParticleTimeController whooshController;
 
-    [Header("Sequence Textures")]
+
+
+    //textures 
     [SerializeField] private Material materialA;
     [SerializeField] private Material materialB;
     [SerializeField] private Material materialC;
@@ -45,6 +58,8 @@ public class ButtonController : MonoBehaviour
     private Coroutine gateCoroutine;
     private Coroutine chevronCoroutine;
 
+
+
     private void Awake()
     {
         if (allButtons == null)
@@ -57,36 +72,45 @@ public class ButtonController : MonoBehaviour
             gateCollider.SetActive(false);
     }
 
+
+
     private void OnDestroy()
     {
         allButtons.Remove(this);
     }
 
+
+
+
     private void Start()
     {
-        // Ensure all chevron materials start without emission
+        //make sure all chevron materials start without emission
         DisableEmission(materialA);
         DisableEmission(materialB);
         DisableEmission(materialC);
         DisableEmission(materialD);
         DisableEmission(materialE);
         DisableEmission(materialF);
-        
-        // Set button sprite to black and disable light at start
+
+
+
+        // set button sprite to black and disable light at start
         if (!isActivateButton && buttonSpriteRenderer != null && blackSprite != null)
         {
             buttonSpriteRenderer.sprite = blackSprite;
         }
-        
+
         if (buttonLight != null)
         {
             buttonLight.enabled = false;
         }
     }
 
+
+
     public void Touched()
     {
-        // Play the button press sound
+        // play the button press sound
         if (_buttonpress != null)
         {
             _buttonpress.Play();
@@ -103,16 +127,16 @@ public class ButtonController : MonoBehaviour
         isPressed = true;
         currentSequence += keySymbol;
 
-        // Change sprite to white and enable light
+        // change sprite to white and enable light
         SetButtonActive(true);
 
-        // Enable corresponding chevron emission with delay
+        // enable corresponding chevron emission with delay
         chevronCoroutine = StartCoroutine(EnableChevronWithDelay(keySymbol, 0.5f));
 
-        // Error check: if sequence length exceeds 3, treat as wrong sequence
+        // if sequence length exceeds 3, treat as wrong sequence
         if (currentSequence.Length > 3)
         {
-            // Wrong sequence - reset and play error sound
+            // if wrong sequence meaning reset and play error sound
             if (_error != null)
             {
                 _error.Play();
@@ -121,11 +145,16 @@ public class ButtonController : MonoBehaviour
             return;
         }
 
+
+
         if (currentSequence.Length == 3)
         {
             CheckSequence();
         }
     }
+
+
+
 
     private void CheckSequence()
     {
@@ -147,7 +176,7 @@ public class ButtonController : MonoBehaviour
         {
             readyToActivate = true;
 
-            // Find and enable light for the activate button, and play the activation sound
+            // find and enable light for the activate button, and play the activation sound
             foreach (var btn in allButtons)
             {
                 if (btn.isActivateButton)
@@ -157,17 +186,17 @@ public class ButtonController : MonoBehaviour
                         btn.buttonLight.enabled = true;
                     }
 
-                    // Play the activate button sound
+                    // play the activate button sound
                     //if (btn._activatebutton != null)
                     //{
-                        //btn._activatebutton.Play();
+                    //btn._activatebutton.Play();
                     //}
                 }
             }
         }
         else
         {
-            // Wrong sequence - reset everything and play error sound
+            // wrong sequence -> reset everything and play error sound
             if (_error != null)
             {
                 _error.Play();
@@ -187,26 +216,26 @@ public class ButtonController : MonoBehaviour
         if (!readyToActivate || string.IsNullOrEmpty(sequenceSnapshot))
             yield break;
 
-        // Chevrons are already lit from button presses, just activate the gate
+        // chevrons are already lit from button presses, just activate the gate
         yield return new WaitForSeconds(1f);
 
-        // Play the whoosh sound before activating the gate
+        // play the whoosh sound before activating the gate
         if (_whoosh != null)
         {
             _whoosh.Play();
         }
 
-        // Activate the gate collider
+        // activate the gate collider
         if (gateCollider != null)
             gateCollider.SetActive(true);
 
-        // Start the particle effect
+        // start the particle effect
         if (whooshController != null)
         {
             whooshController.StartWhoosh(); // WHOOOOOOOOOOOOOOOOOOOOOOOOOSHSHHHHHHHHH
         }
 
-        // Start the 30 second gate timeout
+        // start the 30 second gate timeout
         if (gateCoroutine != null)
         {
             StopCoroutine(gateCoroutine);
@@ -234,7 +263,7 @@ public class ButtonController : MonoBehaviour
                 btn.isPressed = false;
                 btn.SetButtonActive(false);
                 
-                // Stop any pending chevron coroutines
+                // stop any pending chevron coroutines
                 if (btn.chevronCoroutine != null)
                 {
                     btn.StopCoroutine(btn.chevronCoroutine);
@@ -242,11 +271,11 @@ public class ButtonController : MonoBehaviour
                 }
             }
             
-            // Disable activate button light when resetting
+            // disable activate button light when resetting
             if (btn.isActivateButton && btn.buttonLight != null)
                 btn.buttonLight.enabled = false;
             
-            // Disable emission for all chevron textures on this button instance
+            // disable emission for all chevron textures on this button instance
             btn.DisableEmission(btn.materialA);
             btn.DisableEmission(btn.materialB);
             btn.DisableEmission(btn.materialC);
@@ -275,10 +304,19 @@ public class ButtonController : MonoBehaviour
     public string GetActiveCondition() => activeCondition;
     public void ClearActiveCondition() => activeCondition = "";
 
+
+
+
+
+
     // --- Button sprite and light control ---
+
+
+
+
     private void SetButtonActive(bool active)
     {
-        // For activate button, only control light
+        // for activate button, only control light
         if (isActivateButton)
         {
             if (buttonLight != null)
@@ -286,7 +324,7 @@ public class ButtonController : MonoBehaviour
             return;
         }
 
-        // For regular buttons, swap sprite and control light
+        // for regular buttons, swap sprite and control light
         if (buttonSpriteRenderer != null)
         {
             buttonSpriteRenderer.sprite = active ? whiteSprite : blackSprite;
@@ -298,17 +336,31 @@ public class ButtonController : MonoBehaviour
         }
     }
 
+
+
+
     // --- Enable chevron emission with delay ---
+
+
+
+
     private IEnumerator EnableChevronWithDelay(string key, float delay)
     {
         yield return new WaitForSeconds(delay);
         EnableChevronForKey(key);
     }
 
+
+
+
     // --- Enable chevron emission when button is pressed ---
+
+
+
+
     private void EnableChevronForKey(string key)
     {
-        // Play the dial sound when a chevron material is activated
+        // play the dial sound when a chevron material is activated
         if (_dial != null)
         {
             _dial.Play();
@@ -325,7 +377,16 @@ public class ButtonController : MonoBehaviour
         }
     }
 
+
+
+
+
     // --- Chevron emission helpers ---
+
+
+
+
+
     private void EnableEmission(Material mat, Color color)
     {
         if (mat == null) return;

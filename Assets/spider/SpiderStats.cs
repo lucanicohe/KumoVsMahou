@@ -12,29 +12,45 @@ public enum SpiderVariant
     WhiteBoss
 }
 
+
+
 public class SpiderStats : MonoBehaviour
 {
+
+    // public to be able to communicate 
     public SpiderVariant variant;
 
     public int health = 20;
     public int damagePerSecond = 20;
 
+
+    // one material for all spiders 
     [SerializeField] private Material _spiderMaterial;
 
+
+    // dropped stone
     public GameObject _magicStone;
 
+
+    // face chase player 
     public Transform player;
+    
+
+    //delete spider at its root
     [SerializeField] private GameObject _rootSpider;
 
+// to differiante the whole magic stone from just the child object 
     [SerializeField] private GameObject _stoneRoot;
 
+
+// for material 
     private Renderer _spiderRenderer;
 
     void Start()
     {
         if (player == null)
         {
-            GameObject p = GameObject.FindGameObjectWithTag("Player");
+            GameObject p = GameObject.FindGameObjectWithTag("Player"); // find player
             if (p != null) player = p.transform;
         }
 
@@ -58,7 +74,7 @@ public class SpiderStats : MonoBehaviour
         if (_spiderMaterial != null && _spiderRenderer != null)
             _spiderRenderer.sharedMaterial = _spiderMaterial;
 
-        switch (variant)
+        switch (variant) // different material and body size
         {
             case SpiderVariant.BrownStone:
                 health = 20;
@@ -99,6 +115,8 @@ public class SpiderStats : MonoBehaviour
         }
     }
 
+
+
     void SetMaterialColor(Color color)
     {
         if (_spiderMaterial != null)
@@ -109,6 +127,8 @@ public class SpiderStats : MonoBehaviour
         }
     }
 
+
+
     public void TakeDamage(int amount)
     {
         health -= amount;
@@ -117,6 +137,8 @@ public class SpiderStats : MonoBehaviour
         if (health <= 0)
             Die();
     }
+
+
 
     public int GetDamage() => damagePerSecond;
 
@@ -133,14 +155,14 @@ public class SpiderStats : MonoBehaviour
             MagicStone ms = stone.GetComponent<MagicStone>();
             if (ms != null)
             {
-                switch (variant)
+                switch (variant) // to make sure same spider drop same magic stone
                 {
                     case SpiderVariant.BrownStone: ms.stoneType = MagicStone.TypeList.stone; ms.stoneColor = MagicStone.ColorList.brown; break;
-                    case SpiderVariant.RedFire:    ms.stoneType = MagicStone.TypeList.fire;  ms.stoneColor = MagicStone.ColorList.red;   break;
-                    case SpiderVariant.YellowWind: ms.stoneType = MagicStone.TypeList.wind;  ms.stoneColor = MagicStone.ColorList.yellow; break;
-                    case SpiderVariant.CyanIce:    ms.stoneType = MagicStone.TypeList.ice;   ms.stoneColor = MagicStone.ColorList.cyan;   break;
-                    case SpiderVariant.BlueWater:  ms.stoneType = MagicStone.TypeList.water; ms.stoneColor = MagicStone.ColorList.blue;  break;
-                    case SpiderVariant.WhiteBoss:  ms.stoneType = MagicStone.TypeList.light; ms.stoneColor = MagicStone.ColorList.white; break;
+                    case SpiderVariant.RedFire: ms.stoneType = MagicStone.TypeList.fire; ms.stoneColor = MagicStone.ColorList.red; break;
+                    case SpiderVariant.YellowWind: ms.stoneType = MagicStone.TypeList.wind; ms.stoneColor = MagicStone.ColorList.yellow; break;
+                    case SpiderVariant.CyanIce: ms.stoneType = MagicStone.TypeList.ice; ms.stoneColor = MagicStone.ColorList.cyan; break;
+                    case SpiderVariant.BlueWater: ms.stoneType = MagicStone.TypeList.water; ms.stoneColor = MagicStone.ColorList.blue; break;
+                    case SpiderVariant.WhiteBoss: ms.stoneType = MagicStone.TypeList.light; ms.stoneColor = MagicStone.ColorList.white; break;
                 }
 
                 ms.UpdateStoneAppearance();

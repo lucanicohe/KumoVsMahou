@@ -5,18 +5,27 @@ using UnityEngine.UI;
 
 public class MagicForge : MonoBehaviour
 {
-    [Header("UI References")]
+
+    // refrences 
     [SerializeField] private GameObject forgeUIPanel;
     [SerializeField] private Dropdown typeDropdown;
     [SerializeField] private Dropdown colorDropdown;
 
-    [Header("Stone Reference")]
+
+
+    //which stone
     [SerializeField] private MagicStone targetStone;
 
-    [Header("Player Reference")]
+
+
+    //player 
     [SerializeField] private GameObject player;
 
+
+
     private bool isUIOpen = false;
+
+
 
     void Start()
     {
@@ -25,6 +34,9 @@ public class MagicForge : MonoBehaviour
 
         SetupDropdowns();
     }
+
+
+
 
     void SetupDropdowns()
     {
@@ -45,6 +57,8 @@ public class MagicForge : MonoBehaviour
         }
     }
 
+
+
     public void Touched()
     {
         if (isUIOpen)
@@ -56,6 +70,9 @@ public class MagicForge : MonoBehaviour
             OpenUI();
         }
     }
+
+
+
 
     void OpenUI()
     {
@@ -78,6 +95,9 @@ public class MagicForge : MonoBehaviour
         }
     }
 
+
+
+
     void CloseUI()
     {
         if (forgeUIPanel != null)
@@ -93,6 +113,9 @@ public class MagicForge : MonoBehaviour
         }
     }
 
+
+
+
     void OnTypeChanged(int index)
     {
         if (targetStone != null)
@@ -103,6 +126,9 @@ public class MagicForge : MonoBehaviour
         }
     }
 
+
+
+
     void OnColorChanged(int index)
     {
         if (targetStone != null)
@@ -112,6 +138,9 @@ public class MagicForge : MonoBehaviour
             Debug.Log($"Forge: Color changed to {targetStone.stoneColor}");
         }
     }
+
+
+
 
     void Update()
     {

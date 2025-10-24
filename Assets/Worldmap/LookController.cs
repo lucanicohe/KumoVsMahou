@@ -5,9 +5,14 @@ using UnityEngine;
 public class LookController : MonoBehaviour
 {
 
+
+
     [SerializeField] private Transform player;
-    [SerializeField] private float mouseSensitivity = 500f; 
+    [SerializeField] private float mouseSensitivity = 500f;
     float xRotation = 0f; 
+    
+
+
 
 
     // Start is called before the first frame update 
@@ -20,6 +25,9 @@ public class LookController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
+
+        
 
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;

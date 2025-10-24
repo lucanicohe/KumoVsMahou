@@ -4,11 +4,13 @@ using UnityEngine;
 
 public class MagicStone : MonoBehaviour
 {
-    [Header("Stone Properties")]
+    // properties 
     public TypeList stoneType;
     public ColorList stoneColor;
 
-    [Header("Stone Models (assign 7 models)")]
+
+
+    // 3d models
     [SerializeField] private GameObject shadowModel;
     [SerializeField] private GameObject stoneModel;
     [SerializeField] private GameObject fireModel;
@@ -17,13 +19,20 @@ public class MagicStone : MonoBehaviour
     [SerializeField] private GameObject waterModel;
     [SerializeField] private GameObject lightModel;
 
-    [Header("Stone Material")]
+
+
+    //material
     [SerializeField] private Material stoneMaterial;
 
-    [Header("Stone Light")]
+
+
+    // light object
     [SerializeField] private Light stoneLight;
 
+
     private MeshRenderer stoneRenderer;
+
+
 
     public enum TypeList
     {
@@ -35,9 +44,10 @@ public class MagicStone : MonoBehaviour
         black, brown, red, yellow, cyan, blue, white
     }
 
+
     void Start()
     {
-        UpdateStoneAppearance();
+        UpdateStoneAppearance(); // depending on what is selected (also below)
     }
 
     public void OnValidate()
@@ -51,7 +61,9 @@ public class MagicStone : MonoBehaviour
         UpdateMaterialColor(stoneColor);
     }
 
-    void ActivateModelForType(TypeList type)
+
+
+    void ActivateModelForType(TypeList type)  //select correct 3d model
     {
         if (shadowModel) shadowModel.SetActive(false);
         if (stoneModel) stoneModel.SetActive(false);
@@ -87,7 +99,8 @@ public class MagicStone : MonoBehaviour
         }
     }
 
-    void UpdateMaterialColor(ColorList color)
+
+    void UpdateMaterialColor(ColorList color)  //material color
     {
         stoneRenderer = GetComponentInChildren<MeshRenderer>();
         if (stoneRenderer == null || stoneMaterial == null) return;
@@ -107,6 +120,8 @@ public class MagicStone : MonoBehaviour
             stoneLight.color = baseColor;
     }
 
+
+
     Color GetBaseColor(ColorList color)
     {
         switch (color)
@@ -122,6 +137,8 @@ public class MagicStone : MonoBehaviour
         }
     }
 
+
+
     public MagicType GetMagicType()
     {
         switch (stoneType)
@@ -136,6 +153,8 @@ public class MagicStone : MonoBehaviour
             default: return MagicType.Shadow;
         }
     }
+
+
 
     public MagicColor GetMagicColor()
     {

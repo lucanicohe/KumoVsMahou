@@ -5,14 +5,22 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public class MovementController : MonoBehaviour
 {
+
+
+
     [SerializeField] private float PlayerSpeed = 3f;
     [SerializeField] private float Gravity = -9.81f;
-    [SerializeField] private float JumpHeight = 1.5f; 
-  
+    [SerializeField] private float JumpHeight = 1.5f;
+
+
+
 
     private CharacterController controller;
     private Vector3 velocity;
     private bool isGrounded;
+
+
+
 
     private void Awake()
     {
@@ -21,25 +29,31 @@ public class MovementController : MonoBehaviour
 
     private void Update()
     {
-        // Check if player is on ground
+        // 
+        // if player is on ground
         isGrounded = controller.isGrounded;
         if (isGrounded && velocity.y < 0)
             velocity.y = -2f; // small downward force to stick to slopes
 
-        // Movement input
+
+
+        // input
         float x = Input.GetAxis("Horizontal");
         float z = Input.GetAxis("Vertical");
         Vector3 move = transform.right * x + transform.forward * z;
 
         controller.Move(move * PlayerSpeed * Time.deltaTime);
 
-        // Gravity
+
+
+        // gravity
         velocity.y += Gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
 
+
         
 
-        // Jump (optional)
+        // jumping !!
         if (Input.GetButtonDown("Jump") && isGrounded)
             velocity.y = Mathf.Sqrt(JumpHeight * -2f * Gravity);
     }

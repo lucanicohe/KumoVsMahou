@@ -4,11 +4,20 @@ using UnityEngine;
 
 public class LegMove : MonoBehaviour
 {
-    public enum Axis { X, Y, Z }  // Axis selector
+
+
+
+
+    public enum Axis { X, Y, Z }  // whic axis
 
     [SerializeField] private Axis rotationAxis = Axis.Y;
-    [SerializeField] private float angle = 15f;     // Maximum rotation angle
-    [SerializeField] private float duration = 1f;   // Time to go from 0° to max angle
+    [SerializeField] private float angle = 15f;     // how much move
+    [SerializeField] private float duration = 1f;   // movement speed 
+
+
+
+
+
 
     private float timer;
 
@@ -20,7 +29,9 @@ public class LegMove : MonoBehaviour
 
         Vector3 euler = transform.localRotation.eulerAngles;
 
-        // Apply rotation to the selected axis
+
+
+        // apply rotation to axis
         switch (rotationAxis)
         {
             case Axis.X:
@@ -33,6 +44,9 @@ public class LegMove : MonoBehaviour
                 euler.z = currentAngle;
                 break;
         }
+
+
+        
 
         transform.localRotation = Quaternion.Euler(euler);
     }
