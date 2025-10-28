@@ -7,11 +7,19 @@ public class MagicForge : MonoBehaviour
 {
 
     // refrences 
+    [Header("UI参照")]
     [SerializeField] private GameObject forgeUIPanel;
+    [SerializeField] private Transform inventoryGrid;
     [SerializeField] private Dropdown typeDropdown;
     [SerializeField] private Dropdown colorDropdown;
+     [SerializeField] private Transform slotA;
+    [SerializeField] private Transform slotB;
+    [SerializeField] private Button combineButton;
+    [SerializeField] private Text detailText;
 
-
+    [Header("参照")]
+    [SerializeField] private Inventory inventory;
+    [SerializeField] private GameObject magicStonePrefab;
 
     //which stone
     [SerializeField] private MagicStone targetStone;
@@ -22,7 +30,8 @@ public class MagicForge : MonoBehaviour
     [SerializeField] private GameObject player;
 
 
-
+    private MagicStone stoneInSlotA;
+    private MagicStone stoneInSlotB;
     private bool isUIOpen = false;
 
 
@@ -31,6 +40,9 @@ public class MagicForge : MonoBehaviour
     {
         if (forgeUIPanel != null)
             forgeUIPanel.SetActive(false);
+        
+        if (combineButton != null)
+            combineButton.onClick.AddListener(CombineStones);
 
         SetupDropdowns();
     }
