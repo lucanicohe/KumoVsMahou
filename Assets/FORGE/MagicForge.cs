@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,14 +9,12 @@ public class MagicForge : MonoBehaviour
 
     // refrences 
     [Header("UI参照")]
-    [SerializeField] private GameObject forgeUIPanel;
+    [SerializeField] private GameObject CombineUIPanel;
     [SerializeField] private Transform inventoryGrid;
-    [SerializeField] private Dropdown typeDropdown;
-    [SerializeField] private Dropdown colorDropdown;
      [SerializeField] private Transform slotA;
     [SerializeField] private Transform slotB;
     [SerializeField] private Button combineButton;
-    [SerializeField] private Text detailText;
+    [SerializeField] private TextMeshProUGUI detailText;
 
     [Header("参照")]
     [SerializeField] private Inventory inventory;
@@ -37,36 +36,9 @@ public class MagicForge : MonoBehaviour
 
 
     void Start()
-    {
-        if (forgeUIPanel != null)
-            forgeUIPanel.SetActive(false);
-        
+    { 
         if (combineButton != null)
             combineButton.onClick.AddListener(CombineStones);
-
-        SetupDropdowns();
-    }
-
-
-
-
-    void SetupDropdowns()
-    {
-        if (typeDropdown != null)
-        {
-            typeDropdown.ClearOptions();
-            List<string> typeOptions = new List<string> { "shadow", "stone", "fire", "wind", "ice", "water", "light" };
-            typeDropdown.AddOptions(typeOptions);
-            typeDropdown.onValueChanged.AddListener(OnTypeChanged);
-        }
-
-        if (colorDropdown != null)
-        {
-            colorDropdown.ClearOptions();
-            List<string> colorOptions = new List<string> { "black", "brown", "red", "yellow", "cyan", "blue", "white" };
-            colorDropdown.AddOptions(colorOptions);
-            colorDropdown.onValueChanged.AddListener(OnColorChanged);
-        }
     }
 
 
@@ -88,21 +60,15 @@ public class MagicForge : MonoBehaviour
 
     void OpenUI()
     {
-        if (forgeUIPanel != null)
+        if (CombineUIPanel != null)
         {
-            forgeUIPanel.SetActive(true);
+            CombineUIPanel.SetActive(true);
             isUIOpen = true;
 
             if (player != null)
             {
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
-            }
-
-            if (targetStone != null)
-            {
-                typeDropdown.value = (int)targetStone.stoneType;
-                colorDropdown.value = (int)targetStone.stoneColor;
             }
         }
     }
@@ -112,9 +78,9 @@ public class MagicForge : MonoBehaviour
 
     void CloseUI()
     {
-        if (forgeUIPanel != null)
+        if (CombineUIPanel != null)
         {
-            forgeUIPanel.SetActive(false);
+            CombineUIPanel.SetActive(false);
             isUIOpen = false;
 
             if (player != null)
@@ -126,31 +92,56 @@ public class MagicForge : MonoBehaviour
     }
 
 
-
-
-    void OnTypeChanged(int index)
+    void RefreshInventoryDisplay()
     {
-        if (targetStone != null)
+        foreach (Transform child in inventoryGrid)
+            Destroy(child.gameObject);
+
+        foreach (MagicStone stone in inventory.GetAllStones())
         {
-            targetStone.stoneType = (MagicStone.TypeList)index;
-            targetStone.OnValidate();
-            Debug.Log($"Forge: Type changed to {targetStone.stoneType}");
+            GameObject stoneUI = Instantiate(magicStonePrefab, inventoryGrid);
         }
     }
 
-
-
-
-    void OnColorChanged(int index)
+    public void PlaceInSlotA(MagicStone stone)
     {
-        if (targetStone != null)
-        {
-            targetStone.stoneColor = (MagicStone.ColorList)index;
-            targetStone.OnValidate();
-            Debug.Log($"Forge: Color changed to {targetStone.stoneColor}");
-        }
+        stoneInSlotA = stone;
+        inventory.RemoveStone(stone);
     }
 
+    public void PlaceInSlotB(MagicStone stone)
+    {
+        stoneInSlotB = stone;
+        inventory.RemoveStone(stone);
+    }
+
+
+    void CombineStones()
+    {
+        if (stoneInSlotA == null || stoneInSlotB == null)
+        {
+            Debug.Log("2つの石が必要です");
+            return;
+        }
+
+        MagicStone.TypeList newType = Random.value > 0.5f ? stoneInSlotA.stoneType : stoneInSlotB.stoneType;
+        MagicStone.ColorList newColor = Random.value > 0.5f ? stoneInSlotA.stoneColor : stoneInSlotB.stoneColor;
+
+        GameObject newStone = Instantiate(magicStonePrefab);
+        MagicStone newStoneScript = newStone.GetComponent<MagicStone>();
+        newStoneScript.stoneType = newType;
+        newStoneScript.stoneColor = newColor;
+
+        inventory.AddStone(newStoneScript);
+
+        Destroy(stoneInSlotA.gameObject);
+        Destroy(stoneInSlotB.gameObject);
+        stoneInSlotA = null;
+        stoneInSlotB = null;
+
+        RefreshInventoryDisplay();
+        Debug.Log($"新しい石を作成: {newColor} {newType}");
+    }
 
 
 

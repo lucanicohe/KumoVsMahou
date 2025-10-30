@@ -8,6 +8,7 @@ public class PlayerTouch : MonoBehaviour
 
     [SerializeField] private Camera playerCamera;
     [SerializeField] private float interactRange = 3f;
+    private MagicStone activeStone;
 
 
 
@@ -34,6 +35,13 @@ public class PlayerTouch : MonoBehaviour
                 {
                     //Debug.Log($"[PlayerTouch] using forge: {forge.name}");
                     forge.Touched();
+                }
+
+                Inventory inventory = hit.collider.GetComponent<Inventory>();
+                if (inventory != null)
+                {
+                    //Debug.Log($"[PlayerTouch] accessing inventory: {inventory.name}");
+                    inventory.PickUpStone(activeStone);
                 }
             }
             else

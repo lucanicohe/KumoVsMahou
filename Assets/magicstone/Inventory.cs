@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,7 +10,8 @@ public class Inventory : MonoBehaviour
     [SerializeField] private GameObject inventoryUIPanel;
     [SerializeField] private Transform inventoryGrid;
     [SerializeField] private Transform activeSlot;
-    [SerializeField] private Text stoneDetailsText;
+    [SerializeField] private TextMeshProUGUI stoneDetailsText;
+    [SerializeField] private GameObject stoneImage;
 
     [Header("参照")]
     [SerializeField] private UltimateMagicStaff staff;
