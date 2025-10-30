@@ -100,7 +100,7 @@ public class MagicStone : MonoBehaviour
     }
 
 
-    void UpdateMaterialColor(ColorList color)  //material color
+    void UpdateMaterialColor(ColorList color)  //material emission color
     {
         stoneRenderer = GetComponentInChildren<MeshRenderer>();
         if (stoneRenderer == null || stoneMaterial == null) return;
@@ -108,16 +108,13 @@ public class MagicStone : MonoBehaviour
         Material matInstance = new Material(stoneMaterial);
         stoneRenderer.material = matInstance;
 
-        Color baseColor = GetBaseColor(color);
+        Color emissionColor = GetBaseColor(color);
 
-        matInstance.SetColor("_Color", baseColor);
-        if (matInstance.HasProperty("_BaseColor"))
-            matInstance.SetColor("_BaseColor", baseColor);
-
-        matInstance.DisableKeyword("_EMISSION");
+        matInstance.EnableKeyword("_EMISSION");
+        matInstance.SetColor("_EmissionColor", emissionColor);
 
         if (stoneLight != null)
-            stoneLight.color = baseColor;
+            stoneLight.color = emissionColor;
     }
 
 
