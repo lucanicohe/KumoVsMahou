@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI; 
 
 public enum MagicType
 {
@@ -26,18 +27,18 @@ public enum MagicColor
 
 public class UltimateMagicStaff : MonoBehaviour
 {
-    [Header("Currently Attached Stone")]
-    [SerializeField] private MagicStone attachedStone; // Shows which stone is equipped
+    //current stone
+    [SerializeField] private MagicStone attachedStone;
 
-    [Header("Magic Prefab")]
+    //magic prefab
     [SerializeField] private GameObject magicPrefab;
 
-    [Header("Casting Settings")]
+    //casting settings
     [SerializeField] private Transform castPoint;
     [SerializeField] private float castRange = 50f;
     [SerializeField] private float castCooldown = 0.5f;
 
-    [Header("Magic Type Textures")]
+    //magic type textures
     [SerializeField] private Texture2D shadowTex;
     [SerializeField] private Texture2D stoneTex;
     [SerializeField] private Texture2D fireTex;
@@ -46,7 +47,7 @@ public class UltimateMagicStaff : MonoBehaviour
     [SerializeField] private Texture2D waterTex;
     [SerializeField] private Texture2D lightTex;
 
-    [Header("Magic Type Audio Clips")]
+    //magic audio clips 
     [SerializeField] private AudioClip shadowClip;
     [SerializeField] private AudioClip stoneClip;
     [SerializeField] private AudioClip fireClip;
@@ -55,9 +56,19 @@ public class UltimateMagicStaff : MonoBehaviour
     [SerializeField] private AudioClip waterClip;
     [SerializeField] private AudioClip lightClip;
 
+    //mana bar
+    [SerializeField] private Scrollbar manaBar;
+
+
+    //animation
+    //[SerializeField] private Animator _shoot; 
+
     private PlayerStats playerStats;
     private AudioSource audioSource;
     private float castTimer = 0f;
+
+    
+    private Animator animator;
 
     void Start()
     {
@@ -75,6 +86,14 @@ public class UltimateMagicStaff : MonoBehaviour
             audioSource = gameObject.AddComponent<AudioSource>();
         }
 
+        // animator
+        animator = GetComponent<Animator>(); 
+
+        if (animator == null)
+        {
+            Debug.LogWarning("Animator not found on this object. Animation will not play.");
+        }
+
         if (magicPrefab == null)
         {
             Debug.LogError("Magic Prefab not assigned! Staff will not fire.");
@@ -90,16 +109,24 @@ public class UltimateMagicStaff : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.C) && castTimer <= 0f)
             StartCasting();
+
+        UpdateManaBar();
+    }
+    
+    void UpdateManaBar()
+    {
+        if (manaBar == null || playerStats == null) return;
+
+        float ratio = (float)playerStats.currentMana / playerStats.maxMana;
+        manaBar.size = Mathf.Clamp01(ratio);
     }
 
-    // Public method for stones to attach themselves
     public void AttachStone(MagicStone stone)
     {
         attachedStone = stone;
         Debug.Log($"Stone attached: {stone.stoneColor} {stone.stoneType}");
     }
 
-    // Public method to detach stone (optional - for dropping stones)
     public void DetachStone()
     {
         attachedStone = null;
@@ -108,14 +135,12 @@ public class UltimateMagicStaff : MonoBehaviour
 
     void StartCasting()
     {
-        // Check if a stone is attached
         if (attachedStone == null)
         {
             Debug.Log("No magic stone attached! Cannot cast.");
             return;
         }
 
-        // Get the type and color from the attached stone
         MagicType currentType = attachedStone.GetMagicType();
         MagicColor currentColor = attachedStone.GetMagicColor();
 
@@ -130,6 +155,12 @@ public class UltimateMagicStaff : MonoBehaviour
         castTimer = castCooldown;
 
         PlayMagicSound(currentType);
+
+        // play staff move down
+        if (animator != null)
+        {
+            animator.Play("animationtest", 0, 0f);
+        }
 
         GameObject magicInstance = Instantiate(magicPrefab, castPoint.position, castPoint.rotation);
 

@@ -123,7 +123,7 @@ public class MagicStone : MonoBehaviour
     {
         switch (color)
         {
-            case ColorList.black: return new Color(0.1f, 0.1f, 0.1f);
+            case ColorList.black: return new Color(0.0f, 0.0f, 0.0f);
             case ColorList.brown: return new Color(0.6f, 0.4f, 0.2f);
             case ColorList.red: return Color.red;
             case ColorList.yellow: return Color.yellow;
