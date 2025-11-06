@@ -5,6 +5,7 @@ public class FaceSpiderController : MonoBehaviour
 {
     [SerializeField] private SpiderStats stats;
     [SerializeField] private PlayerStats playerStats;
+    [SerializeField] private GameObject _staff; 
 
     private int clickCounter;
     private int clicksToDetach = 9;
@@ -20,6 +21,7 @@ public class FaceSpiderController : MonoBehaviour
     void Start()
     {
         AttachToPlayer();
+        _staff.SetActive(false); 
     }
 
     void Update()
@@ -30,7 +32,11 @@ public class FaceSpiderController : MonoBehaviour
         {
             clickCounter++;
             if (clickCounter >= clicksToDetach)
+            {
                 DetachFromPlayer();
+                _staff.SetActive(true);
+            }
+            
         }
     }
 
@@ -55,6 +61,8 @@ public class FaceSpiderController : MonoBehaviour
         if (isAttached || stats == null || playerStats == null) return;
 
         isAttached = true;
+
+       //_staff.SetActive(false); 
 
         if (damageCoroutine != null)
             StopCoroutine(damageCoroutine);
