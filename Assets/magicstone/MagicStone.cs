@@ -4,13 +4,9 @@ using UnityEngine;
 
 public class MagicStone : MonoBehaviour
 {
-    // properties 
     public TypeList stoneType;
     public ColorList stoneColor;
 
-
-
-    // 3d models
     [SerializeField] private GameObject shadowModel;
     [SerializeField] private GameObject stoneModel;
     [SerializeField] private GameObject fireModel;
@@ -19,20 +15,9 @@ public class MagicStone : MonoBehaviour
     [SerializeField] private GameObject waterModel;
     [SerializeField] private GameObject lightModel;
 
-
-
-    //material
     [SerializeField] private Material stoneMaterial;
 
-
-
-    // light object
-    [SerializeField] private Light stoneLight;
-
-
     private MeshRenderer stoneRenderer;
-
-
 
     public enum TypeList
     {
@@ -44,15 +29,58 @@ public class MagicStone : MonoBehaviour
         black, brown, red, yellow, cyan, blue, white
     }
 
-
     void Start()
     {
-        UpdateStoneAppearance(); // depending on what is selected (also below)
+        // Delay sync to ensure Stone2D has initialized
+        Invoke("SyncFromActiveSlot", 0.1f);
+        UpdateStoneAppearance();
+    }
+
+    void SyncFromActiveSlot()
+    {
+        Stone2D activeSlot = FindObjectOfType<Stone2D>();
+        if (activeSlot != null && activeSlot.gameObject.name.Contains("ActiveSlot"))
+        {
+            stoneType = ConvertTypeToTypeList(activeSlot.stoneType);
+            stoneColor = ConvertColorToColorList(activeSlot.stoneColor);
+            UpdateStoneAppearance();
+            Debug.Log($"MagicStone synced from active slot: {stoneColor} {stoneType}");
+        }
     }
 
     public void OnValidate()
     {
         UpdateStoneAppearance();
+    }
+
+    TypeList ConvertTypeToTypeList(MagicType type)
+    {
+        switch (type)
+        {
+            case MagicType.Shadow: return TypeList.shadow;
+            case MagicType.Stone: return TypeList.stone;
+            case MagicType.Fire: return TypeList.fire;
+            case MagicType.Wind: return TypeList.wind;
+            case MagicType.Ice: return TypeList.ice;
+            case MagicType.Water: return TypeList.water;
+            case MagicType.Light: return TypeList.light;
+            default: return TypeList.shadow;
+        }
+    }
+
+    ColorList ConvertColorToColorList(MagicColor color)
+    {
+        switch (color)
+        {
+            case MagicColor.Black: return ColorList.black;
+            case MagicColor.Brown: return ColorList.brown;
+            case MagicColor.Red: return ColorList.red;
+            case MagicColor.Yellow: return ColorList.yellow;
+            case MagicColor.Cyan: return ColorList.cyan;
+            case MagicColor.Blue: return ColorList.blue;
+            case MagicColor.White: return ColorList.white;
+            default: return ColorList.black;
+        }
     }
 
     public void UpdateStoneAppearance()
@@ -61,9 +89,7 @@ public class MagicStone : MonoBehaviour
         UpdateMaterialColor(stoneColor);
     }
 
-
-
-    void ActivateModelForType(TypeList type)  //select correct 3d model
+    void ActivateModelForType(TypeList type)
     {
         if (shadowModel) shadowModel.SetActive(false);
         if (stoneModel) stoneModel.SetActive(false);
@@ -99,8 +125,7 @@ public class MagicStone : MonoBehaviour
         }
     }
 
-
-    void UpdateMaterialColor(ColorList color)  //material emission color
+    void UpdateMaterialColor(ColorList color)
     {
         stoneRenderer = GetComponentInChildren<MeshRenderer>();
         if (stoneRenderer == null || stoneMaterial == null) return;
@@ -112,12 +137,7 @@ public class MagicStone : MonoBehaviour
 
         matInstance.EnableKeyword("_EMISSION");
         matInstance.SetColor("_EmissionColor", emissionColor);
-
-        if (stoneLight != null)
-            stoneLight.color = emissionColor;
     }
-
-
 
     Color GetBaseColor(ColorList color)
     {
@@ -134,7 +154,27 @@ public class MagicStone : MonoBehaviour
         }
     }
 
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            Stoner stoner = FindObjectOfType<Stoner>();
+            if (stoner == null)
+            {
+                Debug.LogError("Stoner not found in scene!");
+                return;
+            }
 
+            MagicType type = GetMagicType();
+            MagicColor color = GetMagicColor();
+
+            stoner.PickupStone(type, color);
+            Debug.Log($"Player entered stone trigger! Sending {type} {color} to Stoner");
+
+            // Destroy this stone
+            Destroy(gameObject);
+        }
+    }
 
     public MagicType GetMagicType()
     {
@@ -151,8 +191,6 @@ public class MagicStone : MonoBehaviour
         }
     }
 
-
-
     public MagicColor GetMagicColor()
     {
         switch (stoneColor)
@@ -166,5 +204,10 @@ public class MagicStone : MonoBehaviour
             case ColorList.white: return MagicColor.White;
             default: return MagicColor.Black;
         }
+
+
+
+
+        
     }
 }
