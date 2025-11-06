@@ -163,6 +163,7 @@ public class UltimateMagicStaff : MonoBehaviour
         }
 
         GameObject magicInstance = Instantiate(magicPrefab, castPoint.position, castPoint.rotation);
+        magicInstance.transform.SetParent(castPoint);
 
         ParticleSystem[] allParticles = magicInstance.GetComponentsInChildren<ParticleSystem>(true);
         if (allParticles.Length > 0)
