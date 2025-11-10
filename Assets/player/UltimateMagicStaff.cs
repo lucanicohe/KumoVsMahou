@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI; 
+using UnityEngine.UI;
 
 public enum MagicType
 {
@@ -27,18 +27,14 @@ public enum MagicColor
 
 public class UltimateMagicStaff : MonoBehaviour
 {
-    //current stone
     [SerializeField] private MagicStone attachedStone;
 
-    //magic prefab
     [SerializeField] private GameObject magicPrefab;
-
-    //casting settings
     [SerializeField] private Transform castPoint;
     [SerializeField] private float castRange = 50f;
     [SerializeField] private float castCooldown = 0.5f;
 
-    //magic type textures
+    // Textures
     [SerializeField] private Texture2D shadowTex;
     [SerializeField] private Texture2D stoneTex;
     [SerializeField] private Texture2D fireTex;
@@ -47,7 +43,7 @@ public class UltimateMagicStaff : MonoBehaviour
     [SerializeField] private Texture2D waterTex;
     [SerializeField] private Texture2D lightTex;
 
-    //magic audio clips 
+    // Sounds
     [SerializeField] private AudioClip shadowClip;
     [SerializeField] private AudioClip stoneClip;
     [SerializeField] private AudioClip fireClip;
@@ -56,47 +52,41 @@ public class UltimateMagicStaff : MonoBehaviour
     [SerializeField] private AudioClip waterClip;
     [SerializeField] private AudioClip lightClip;
 
-    //mana bar
     [SerializeField] private Scrollbar manaBar;
 
+    // 
+    [SerializeField] private PlayerStats playerStats;
 
-    //animation
-    //[SerializeField] private Animator _shoot; 
 
-    private PlayerStats playerStats;
+    //[SerializeField] private GameObject hitEffectPrefab;
+
+
+
+
     private AudioSource audioSource;
-    private float castTimer = 0f;
-
-    
     private Animator animator;
+    private float castTimer = 0f;
 
     void Start()
     {
-        playerStats = GetComponent<PlayerStats>();
         if (playerStats == null)
         {
-            Debug.LogError("PlayerStats not found on player!");
+            Debug.LogError("PlayerStats not assigned in inspector!");
             enabled = false;
             return;
         }
 
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
-        {
             audioSource = gameObject.AddComponent<AudioSource>();
-        }
 
-        // animator
-        animator = GetComponent<Animator>(); 
-
+        animator = GetComponent<Animator>();
         if (animator == null)
-        {
-            Debug.LogWarning("Animator not found on this object. Animation will not play.");
-        }
+            Debug.LogWarning("Animator missing on staff!");
 
         if (magicPrefab == null)
         {
-            Debug.LogError("Magic Prefab not assigned! Staff will not fire.");
+            Debug.LogError("Magic Prefab missing!");
             enabled = false;
             return;
         }
@@ -112,10 +102,10 @@ public class UltimateMagicStaff : MonoBehaviour
 
         UpdateManaBar();
     }
-    
+
     void UpdateManaBar()
     {
-        if (manaBar == null || playerStats == null) return;
+        if (manaBar == null) return;
 
         float ratio = (float)playerStats.currentMana / playerStats.maxMana;
         manaBar.size = Mathf.Clamp01(ratio);
@@ -130,96 +120,113 @@ public class UltimateMagicStaff : MonoBehaviour
     public void DetachStone()
     {
         attachedStone = null;
-        Debug.Log("Stone detached from staff");
     }
 
     void StartCasting()
     {
         if (attachedStone == null)
         {
-            Debug.Log("No magic stone attached! Cannot cast.");
+            Debug.Log("No stone attached!");
             return;
         }
 
-        MagicType currentType = attachedStone.GetMagicType();
-        MagicColor currentColor = attachedStone.GetMagicColor();
+        MagicType type = attachedStone.GetMagicType();
+        MagicColor color = attachedStone.GetMagicColor();
 
-        int manaCost = (int)currentType;
+        int manaCost = (int)type;
+
         if (!playerStats.HasEnoughMana(manaCost))
         {
-            Debug.Log("Not enough mana to cast!");
+            Debug.Log("Not enough mana!");
             return;
         }
 
         playerStats.ConsumeMana(manaCost);
         castTimer = castCooldown;
 
-        PlayMagicSound(currentType);
+        PlayMagicSound(type);
 
-        // play staff move down
         if (animator != null)
-        {
             animator.Play("animationtest", 0, 0f);
-        }
 
+        SpawnMagicParticles(type, color);
+        CastRaycast(color);
+    }
+
+    void SpawnMagicParticles(MagicType type, MagicColor color)
+    {
         GameObject magicInstance = Instantiate(magicPrefab, castPoint.position, castPoint.rotation);
         magicInstance.transform.SetParent(castPoint);
 
-        ParticleSystem[] allParticles = magicInstance.GetComponentsInChildren<ParticleSystem>(true);
-        if (allParticles.Length > 0)
+        ParticleSystem[] particles = magicInstance.GetComponentsInChildren<ParticleSystem>(true);
+
+        foreach (var ps in particles)
         {
-            foreach (ParticleSystem ps in allParticles)
-            {
-                ParticleSystemRenderer renderer = ps.GetComponent<ParticleSystemRenderer>();
-                if (renderer != null && renderer.sharedMaterial != null)
-                {
-                    Material matInstance = new Material(renderer.sharedMaterial);
-                    renderer.material = matInstance;
+            var renderer = ps.GetComponent<ParticleSystemRenderer>();
+            if (renderer == null) continue;
 
-                    Color colorA, colorB;
-                    GetColorPairFromEnum(currentColor, out colorA, out colorB);
-                    matInstance.SetColor("_ColorA", colorA);
-                    matInstance.SetColor("_ColorB", colorB);
+            Material mat = new Material(renderer.sharedMaterial);
+            renderer.material = mat;
 
-                    Texture2D mainTex = GetMainTexFromType(currentType);
-                    Texture2D dissolveTex = GetDissolveTexFromType(currentType);
+            Color a, b;
+            GetColorPairFromEnum(color, out a, out b);
+            mat.SetColor("_ColorA", a);
+            mat.SetColor("_ColorB", b);
 
-                    if (mainTex != null)
-                        matInstance.SetTexture("_MainTex", mainTex);
-                    if (dissolveTex != null)
-                        matInstance.SetTexture("_DissolveTex", dissolveTex);
+            Texture2D mainTex = GetMainTexFromType(type);
+            if (mainTex != null)
+                mat.SetTexture("_MainTex", mainTex);
 
-                    float scrollSpeedY = GetScrollSpeedYFromType(currentType);
-                    Vector2 currentScrollSpeed = matInstance.GetVector("_ScrollSpeed");
-                    currentScrollSpeed.y = scrollSpeedY;
-                    matInstance.SetVector("_ScrollSpeed", currentScrollSpeed);
+            mat.SetVector("_ScrollSpeed", new Vector2(0, GetScrollSpeedYFromType(type)));
 
-                    Debug.Log($"Casting: {currentColor} {currentType}, ColorA={colorA}, ColorB={colorB}");
-                }
-
-                ps.Play();
-            }
-
-            float duration = allParticles[0].main.duration + allParticles[0].main.startLifetime.constantMax;
-            Destroy(magicInstance, duration);
-        }
-        else
-        {
-            Debug.LogError("No ParticleSystem found in spawned prefab!");
-            Destroy(magicInstance, 0.1f);
+            ps.Play();
         }
 
-        CastRaycast(currentColor);
+        float duration = particles[0].main.duration + particles[0].main.startLifetime.constantMax;
+        Destroy(magicInstance, duration);
     }
 
     void PlayMagicSound(MagicType type)
     {
         AudioClip clip = GetAudioClipFromType(type);
-        if (clip != null && audioSource != null)
-        {
+        if (clip != null)
             audioSource.PlayOneShot(clip);
+    }
+
+    void CastRaycast(MagicColor color)
+    {
+        Ray ray = Camera.main.ScreenPointToRay(
+            new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0)
+        );
+
+        if (Physics.Raycast(ray, out RaycastHit hit, castRange))
+        {
+            SpiderStats spider = hit.collider.GetComponent<SpiderStats>();
+            if (spider != null)
+            {
+                // Pass both the spider and the hit point to the coroutine
+                StartCoroutine(DelayedDamage(spider, (int)color, hit.point, 0.7f));
+            }
+        }
+
+        //Debug.DrawRay(ray.origin, ray.direction * castRange, Color.red, 0.2f);
+    }
+
+
+    private IEnumerator DelayedDamage(SpiderStats spider, int damage, Vector3 hitPoint, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        if (spider != null) // check again in case spider was destroyed
+        {
+            spider.TakeDamage(damage);
+
+            
         }
     }
+
+
+
 
     AudioClip GetAudioClipFromType(MagicType type)
     {
@@ -232,79 +239,29 @@ public class UltimateMagicStaff : MonoBehaviour
             case MagicType.Ice: return iceClip;
             case MagicType.Water: return waterClip;
             case MagicType.Light: return lightClip;
-            default: return null;
         }
+        return null;
     }
 
-    void CastRaycast(MagicColor currentColor)
-    {
-        Ray ray;
-        if (Camera.main != null)
-            ray = Camera.main.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
-        else if (castPoint != null)
-            ray = new Ray(castPoint.position, castPoint.forward);
-        else
-        {
-            Debug.LogWarning("No camera or cast point found!");
-            return;
-        }
-
-        if (Physics.Raycast(ray, out RaycastHit hit, castRange))
-        {
-            SpiderStats spider = hit.collider.GetComponent<SpiderStats>();
-            if (spider != null)
-            {
-                int damage = (int)currentColor;
-                spider.TakeDamage(damage);
-                Debug.Log($"Hit {spider.variant} spider for {damage} damage!");
-            }
-        }
-
-        Debug.DrawRay(ray.origin, ray.direction * castRange, Color.red, 0.2f);
-    }
-
-    void GetColorPairFromEnum(MagicColor c, out Color colorA, out Color colorB)
+    // Color helpers
+    void GetColorPairFromEnum(MagicColor c, out Color A, out Color B)
     {
         switch (c)
         {
-            case MagicColor.Black:
-                colorA = new Color(0.1f, 0.1f, 0.1f);
-                colorB = new Color(0.3f, 0.3f, 0.3f);
-                break;
-            case MagicColor.Brown:
-                colorA = new Color(0.6f, 0.4f, 0.2f);
-                colorB = new Color(0.1f, 0.1f, 0.1f);
-                break;
-            case MagicColor.Red:
-                colorA = Color.red;
-                colorB = Color.yellow;
-                break;
-            case MagicColor.Yellow:
-                colorA = Color.yellow;
-                colorB = new Color(1f, 0.6f, 0f);
-                break;
-            case MagicColor.Cyan:
-                colorA = Color.cyan;
-                colorB = Color.white;
-                break;
-            case MagicColor.Blue:
-                colorA = Color.blue;
-                colorB = Color.cyan;
-                break;
-            case MagicColor.White:
-                colorA = Color.white;
-                colorB = new Color(0.9f, 0.95f, 1f);
-                break;
-            default:
-                colorA = Color.white;
-                colorB = Color.white;
-                break;
+            case MagicColor.Black: A = new Color(0.1f, 0.1f, 0.1f); B = new Color(0.3f, 0.3f, 0.3f); break;
+            case MagicColor.Brown: A = new Color(0.6f, 0.4f, 0.2f); B = new Color(0.1f, 0.1f, 0.1f); break;
+            case MagicColor.Red: A = Color.red; B = Color.yellow; break;
+            case MagicColor.Yellow: A = Color.yellow; B = new Color(1f, 0.6f, 0f); break;
+            case MagicColor.Cyan: A = Color.cyan; B = Color.white; break;
+            case MagicColor.Blue: A = Color.blue; B = Color.cyan; break;
+            case MagicColor.White: A = Color.white; B = new Color(0.9f, 0.95f, 1f); break;
+            default: A = Color.white; B = Color.white; break;
         }
     }
 
-    Texture2D GetMainTexFromType(MagicType type)
+    Texture2D GetMainTexFromType(MagicType t)
     {
-        switch (type)
+        switch (t)
         {
             case MagicType.Shadow: return shadowTex;
             case MagicType.Stone: return stoneTex;
@@ -313,28 +270,13 @@ public class UltimateMagicStaff : MonoBehaviour
             case MagicType.Ice: return iceTex;
             case MagicType.Water: return waterTex;
             case MagicType.Light: return lightTex;
-            default: return null;
         }
+        return null;
     }
 
-    Texture2D GetDissolveTexFromType(MagicType type)
+    float GetScrollSpeedYFromType(MagicType t)
     {
-        switch (type)
-        {
-            case MagicType.Shadow: return shadowTex;
-            case MagicType.Stone: return stoneTex;
-            case MagicType.Fire: return fireTex;
-            case MagicType.Wind: return windTex;
-            case MagicType.Ice: return iceTex;
-            case MagicType.Water: return waterTex;
-            case MagicType.Light: return lightTex;
-            default: return null;
-        }
-    }
-
-    float GetScrollSpeedYFromType(MagicType type)
-    {
-        switch (type)
+        switch (t)
         {
             case MagicType.Shadow: return 1f;
             case MagicType.Stone: return 2f;
@@ -343,7 +285,7 @@ public class UltimateMagicStaff : MonoBehaviour
             case MagicType.Ice: return 5f;
             case MagicType.Water: return 6f;
             case MagicType.Light: return 7f;
-            default: return 1f;
         }
+        return 1f;
     }
 }

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class Inventory : MonoBehaviour
 {
@@ -24,12 +25,24 @@ public class Inventory : MonoBehaviour
         }
 
         instance = this;
+        DontDestroyOnLoad(gameObject);
+        Debug.Log("Inventory persisting across scenes");
+    }
+
+    void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     void Start()
     {
         if (stoner == null)
-            stoner = GetComponent<Stoner>();
+            stoner = GetComponent<Stoner>() ?? Stoner.instance;
 
         if (playerMagicStone == null)
             playerMagicStone = FindObjectOfType<MagicStone>();
@@ -45,16 +58,42 @@ public class Inventory : MonoBehaviour
         }
         else
         {
-            // Only disable the CANVAS, not the whole inventory
             inventoryCanvas.gameObject.SetActive(false);
             Debug.Log("Inventory Canvas hidden");
         }
 
-        // Sync active stone with player stone on start
+        // Restore inventory from save (best-effort). This will also rely on Stoner.GetAllStones
+        RestoreInventory();
+
+        // Sync active stone with player stone
         if (activeSlotStone != null)
         {
             activeSlotStone.SyncWithPlayerStone();
         }
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // When a new scene loads we attempt to rebind inventory UI and restore saved data.
+        if (stoner == null) stoner = Stoner.instance;
+        if (stoner != null)
+        {
+            // Try to rebind UI slots (Stoner will attempt best-effort)
+            // and then restore from save
+            RestoreInventory();
+        }
+
+        if (stoner == null) stoner = Stoner.instance;
+
+    if (stoner != null)
+        stoner.TryRebindIfNeeded(); // force rebinding slots
+
+    RestoreInventory();           // then restore from save
+
+        // Sync the active slot to MagicStone **after restore**
+        if (activeSlotStone != null)
+            activeSlotStone.SyncWithPlayerStone();
+        
     }
 
     void Update()
@@ -69,12 +108,10 @@ public class Inventory : MonoBehaviour
     public void ToggleInventory()
     {
         inventoryOpen = !inventoryOpen;
-        Debug.Log($"Toggle called, inventoryOpen = {inventoryOpen}");
 
         if (inventoryCanvas != null)
         {
             inventoryCanvas.gameObject.SetActive(inventoryOpen);
-            Debug.Log($"Canvas set to: {inventoryOpen}");
         }
         else
         {
@@ -82,31 +119,76 @@ public class Inventory : MonoBehaviour
             return;
         }
 
-        // Toggle cursor
         if (inventoryOpen)
         {
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
-            Debug.Log("Inventory OPEN - cursor visible and unlocked");
         }
         else
         {
             Cursor.visible = false;
             Cursor.lockState = CursorLockMode.Locked;
-            Debug.Log("Inventory CLOSED - cursor hidden and locked");
         }
+    }
+
+    void RestoreInventory()
+    {
+        if (InventorySaveManager.instance == null) return;
+
+        InventorySaveData saveData = InventorySaveManager.instance.GetSaveData();
+        if (saveData == null || saveData.stones.Count == 0) return;
+
+        if (stoner == null) stoner = Stoner.instance;
+        if (stoner == null)
+        {
+            Debug.LogWarning("RestoreInventory: Stoner missing, skipping restore for now.");
+            return;
+        }
+
+        Stone2D[] allStones = stoner.GetAllStones();
+        if (allStones == null)
+        {
+            Debug.LogWarning("RestoreInventory: No Stone2D slots available in Stoner.");
+            return;
+        }
+
+        int count = Mathf.Min(saveData.stones.Count, allStones.Length);
+        for (int i = 0; i < count; i++)
+        {
+            StoneData data = saveData.stones[i];
+            if (allStones[i] == null)
+                continue;
+
+            allStones[i].stoneType = data.stoneType;
+            allStones[i].stoneColor = data.stoneColor;
+            allStones[i].gameObject.SetActive(data.isActive);
+            allStones[i].UpdateVisuals();
+        }
+
+        if (activeSlotStone != null)
+        {
+            activeSlotStone.stoneType = saveData.activeSlotType;
+            activeSlotStone.stoneColor = saveData.activeSlotColor;
+            activeSlotStone.UpdateVisuals();
+        }
+
+        Debug.Log($"Restored inventory with {count} stones");
     }
 
     void OnSetButtonPressed()
     {
         if (stoner == null)
         {
-            Debug.LogError("Stoner not assigned!");
-            return;
+            stoner = Stoner.instance;
+            if (stoner == null)
+            {
+                Debug.LogError("Stoner not assigned!");
+                return;
+            }
         }
 
         Stone2D currentStone = stoner.GetCurrentlyActiveStone();
-        
+
         if (currentStone == null)
         {
             Debug.LogWarning("No stone currently selected!");
@@ -138,37 +220,20 @@ public class Inventory : MonoBehaviour
         // Sync player stone to active slot's new values
         activeSlotStone.SyncWithPlayerStone();
 
+        // Save to file
+        SaveInventory();
+        activeSlotStone.SyncWithPlayerStone();
+
         Debug.Log($"Swapped! Active slot now: {activeSlotStone.stoneColor} {activeSlotStone.stoneType}");
     }
 
-    MagicStone.TypeList ConvertTypeToTypeList(MagicType type)
+    public void SaveInventory()
     {
-        switch (type)
-        {
-            case MagicType.Shadow: return MagicStone.TypeList.shadow;
-            case MagicType.Stone: return MagicStone.TypeList.stone;
-            case MagicType.Fire: return MagicStone.TypeList.fire;
-            case MagicType.Wind: return MagicStone.TypeList.wind;
-            case MagicType.Ice: return MagicStone.TypeList.ice;
-            case MagicType.Water: return MagicStone.TypeList.water;
-            case MagicType.Light: return MagicStone.TypeList.light;
-            default: return MagicStone.TypeList.shadow;
-        }
-    }
+        if (InventorySaveManager.instance == null) return;
+        if (stoner == null || activeSlotStone == null) return;
 
-    MagicStone.ColorList ConvertColorToColorList(MagicColor color)
-    {
-        switch (color)
-        {
-            case MagicColor.Black: return MagicStone.ColorList.black;
-            case MagicColor.Brown: return MagicStone.ColorList.brown;
-            case MagicColor.Red: return MagicStone.ColorList.red;
-            case MagicColor.Yellow: return MagicStone.ColorList.yellow;
-            case MagicColor.Cyan: return MagicStone.ColorList.cyan;
-            case MagicColor.Blue: return MagicStone.ColorList.blue;
-            case MagicColor.White: return MagicStone.ColorList.white;
-            default: return MagicStone.ColorList.black;
-        }
+        Stone2D[] allStones = stoner.GetAllStones();
+        InventorySaveManager.instance.SaveStoneData(allStones, activeSlotStone.stoneType, activeSlotStone.stoneColor);
     }
 
     public bool IsInventoryOpen()

@@ -11,4 +11,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/StoneWorld.unity
     guid: 06ed7375499724eb98c275b90bd03034
+  - enabled: 1
+    path: Assets/Scenes/FireWorld.unity
+    guid: 5b8f91afc639642a097ce7baf0ca1e1b
+  - enabled: 1
+    path: Assets/Scenes/WindWorld.unity
+    guid: b0d43f761b02944d58e7b064bf366229
   m_configObjects: {}

@@ -12,6 +12,8 @@ public class MovementController : MonoBehaviour
     [SerializeField] private float Gravity = -9.81f;
     [SerializeField] private float JumpHeight = 1.5f;
 
+    [SerializeField] private AudioSource _walking; 
+
 
 
 
@@ -43,6 +45,21 @@ public class MovementController : MonoBehaviour
         Vector3 move = transform.right * x + transform.forward * z;
 
         controller.Move(move * PlayerSpeed * Time.deltaTime);
+
+        
+
+        if (_walking != null)
+    {
+        if (isGrounded && move.magnitude > 0.1f)
+        {
+            if (!_walking.isPlaying)
+                _walking.Play();
+        }
+        else
+        {
+            _walking.Stop();
+        }
+    }
 
 
 

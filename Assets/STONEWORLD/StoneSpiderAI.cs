@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
+
 public class StoneSpiderAI : MonoBehaviour
 {
     public Transform player;
@@ -26,6 +28,12 @@ public class StoneSpiderAI : MonoBehaviour
 
     private Vector3 initialPosition;
     private Vector3 hiddenPositionOffset = new Vector3(0, -1.5f, 0); // how deep it hides
+
+
+    public SpiderBehavior behavior;
+
+
+
 
     void Start()
     {
@@ -79,35 +87,35 @@ public class StoneSpiderAI : MonoBehaviour
     }
 
     IEnumerator Emerge()
-{
-    hasEmerged = true;
-
-    // Instantiate particle effect at spider position, slightly above
-    if (emergeEffect != null)
     {
-        Vector3 spawnPos = transform.position + Vector3.up * 0.5f; // adjust 0.5f height as needed
-        GameObject particleInstance = Instantiate(emergeEffect.gameObject, spawnPos, Quaternion.identity);
-        
-        ParticleSystem ps = particleInstance.GetComponent<ParticleSystem>();
-        if (ps != null)
-            ps.Play();
-        
-        // Get duration and destroy after particles finish
-        float duration = ps.main.duration + ps.main.startLifetime.constantMax;
-        Destroy(particleInstance, duration);
+        hasEmerged = true;
+
+        // Instantiate particle effect at spider position, slightly above
+        if (emergeEffect != null)
+        {
+            Vector3 spawnPos = transform.position + Vector3.up * 0.5f; // adjust 0.5f height as needed
+            GameObject particleInstance = Instantiate(emergeEffect.gameObject, spawnPos, Quaternion.identity);
+
+            ParticleSystem ps = particleInstance.GetComponent<ParticleSystem>();
+            if (ps != null)
+                ps.Play();
+
+            // Get duration and destroy after particles finish
+            float duration = ps.main.duration + ps.main.startLifetime.constantMax;
+            Destroy(particleInstance, duration);
+        }
+
+        // Jump up from underground
+        isJumping = true;
+        velocity.y = jumpForce;
+
+        // Wait until spider lands
+        yield return new WaitForSeconds(1.5f);
+
+        // Reset position just in case
+        if (transform.position.y < initialPosition.y)
+            transform.position = initialPosition;
     }
-
-    // Jump up from underground
-    isJumping = true;
-    velocity.y = jumpForce;
-
-    // Wait until spider lands
-    yield return new WaitForSeconds(1.5f);
-
-    // Reset position just in case
-    if (transform.position.y < initialPosition.y)
-        transform.position = initialPosition;
-}
 
     void ChasePlayer()
     {

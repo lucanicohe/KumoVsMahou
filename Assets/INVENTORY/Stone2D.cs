@@ -8,6 +8,8 @@ public class Stone2D : MonoBehaviour
 {
     public MagicType stoneType;
     public MagicColor stoneColor;
+
+    public MagicStone playerStone;
     
     private Image stoneImage;
     private CanvasGroup canvasGroup;
@@ -20,8 +22,10 @@ public class Stone2D : MonoBehaviour
 
     // SELECTION INDICATOR - separate object!
     [SerializeField] private Image selectionIndicatorImage;
+    [SerializeField] private Color deselectedIndicatorColor = new Color(0.7f, 0.7f, 0.7f, 1f);
+    [SerializeField] private Color selectedIndicatorColor = Color.green;
 
-    // Stone sprite references 
+    // Stone sprite references (assign in inspector)
     [SerializeField] private Sprite shadowSprite;
     [SerializeField] private Sprite stoneSprite;
     [SerializeField] private Sprite fireSprite;
@@ -45,12 +49,18 @@ public class Stone2D : MonoBehaviour
         }
 
         stoneButton.onClick.AddListener(OnStoneClicked);
+
+        // Set selection indicator to light grey from start
+        if (selectionIndicatorImage != null)
+        {
+            selectionIndicatorImage.color = new Color(0.7f, 0.7f, 0.7f);
+        }
     }
 
     void Start()
     {
         canvasGroup = GetComponent<CanvasGroup>();
-        
+
         if (canvasGroup == null)
             canvasGroup = gameObject.AddComponent<CanvasGroup>();
 
@@ -62,6 +72,22 @@ public class Stone2D : MonoBehaviour
             Invoke("SyncWithPlayerStone", 0.05f);
         }
     }
+
+    public void SyncWithPlayerStone()
+    {
+        if (playerStone == null)
+        {
+            Debug.LogWarning($"[Stone2D] PlayerStone not assigned for {gameObject.name}!");
+            return;
+        }
+
+        playerStone.stoneType = ConvertTypeToTypeList(stoneType);
+        playerStone.stoneColor = ConvertColorToColorList(stoneColor);
+        playerStone.UpdateStoneAppearance();
+        
+    }
+
+
 
     void OnValidate()
     {
@@ -143,7 +169,6 @@ public class Stone2D : MonoBehaviour
         
         if (selectionIndicatorImage != null)
         {
-            selectionIndicatorImage.gameObject.SetActive(true);
             selectionIndicatorImage.color = Color.green;
         }
         
@@ -157,7 +182,7 @@ public class Stone2D : MonoBehaviour
         
         if (selectionIndicatorImage != null)
         {
-            selectionIndicatorImage.gameObject.SetActive(false);
+            selectionIndicatorImage.color = new Color(0.7f, 0.7f, 0.7f);
         }
         
         ClearTextDisplay();
@@ -190,17 +215,7 @@ public class Stone2D : MonoBehaviour
             colorDamageText.text = "";
     }
 
-    public void SyncWithPlayerStone()
-    {
-        MagicStone playerStone = FindObjectOfType<MagicStone>();
-        if (playerStone != null)
-        {
-            playerStone.stoneType = ConvertTypeToTypeList(stoneType);
-            playerStone.stoneColor = ConvertColorToColorList(stoneColor);
-            playerStone.UpdateStoneAppearance();
-            Debug.Log($"Synced player stone to: {stoneColor} {stoneType}");
-        }
-    }
+  
 
     public bool IsCurrentlyClicked()
     {
