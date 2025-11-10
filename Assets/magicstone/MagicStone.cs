@@ -21,6 +21,8 @@ public class MagicStone : MonoBehaviour
 
     private MeshRenderer stoneRenderer;
 
+    private bool _collided = false;
+
     public enum TypeList
     {
         shadow, stone, fire, wind, ice, water, light
@@ -84,6 +86,42 @@ public class MagicStone : MonoBehaviour
 
     void Update()
     {
+        if (_collided && Input.GetKeyDown(KeyCode.E))
+        {
+            UIController.instance.EKEY("");
+
+             // Use the singleton directly (reliable across scenes)
+        Stoner stoner = Stoner.instance;
+
+        // If singleton somehow not yet set, try FindObjectOfType as fallback for robustness.
+        if (stoner == null)
+            stoner = FindObjectOfType<Stoner>();
+
+        MagicType type = GetMagicType();
+        MagicColor color = GetMagicColor();
+
+        if (stoner != null)
+        {
+            stoner.PickupStone(type, color);
+            Debug.Log($"Player entered stone trigger! Sent {type} {color} to Stoner (MagicStone)");
+        }
+        else
+        {
+            Debug.LogError("Stoner not found (singleton null and FindObjectOfType returned null). Pickup aborted.");
+            // Optionally still destroy the world stone or not — original behavior destroyed it.
+            // To preserve your original behavior, we won't destroy it here if we failed to hand it off.
+            return;
+        }
+
+            Destroy(gameObject);
+        
+        }
+
+
+
+
+
+
         // keep original behavior: cheap sync attempt with active slot if needed
         Stone2D activeSlot = FindObjectOfType<Stone2D>();
         if (activeSlot != null && activeSlot.gameObject.name.Contains("ActiveSlot"))
@@ -176,7 +214,13 @@ public class MagicStone : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
+
         if (!other.CompareTag("Player")) return;
+
+        _collided = true;
+        UIController.instance.EKEY("Eキーでひろう");
+
+        /*
 
         // Use the singleton directly (reliable across scenes)
         Stoner stoner = Stoner.instance;
@@ -202,6 +246,16 @@ public class MagicStone : MonoBehaviour
         }
 
         Destroy(gameObject);
+        */
+    }
+
+    void OnTriggerExit(Collider other)
+    {
+        if (!other.CompareTag("Player")) return;
+
+        _collided = false;
+        UIController.instance.EKEY("");
+        
     }
 
     public MagicType GetMagicType()

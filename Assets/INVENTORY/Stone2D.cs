@@ -193,16 +193,18 @@ public class Stone2D : MonoBehaviour
     {
         if (typeManaCostText != null)
         {
-            string typeStr = stoneType.ToString();
+            //string typeStr = stoneType.ToString();
+            string typeStr = GetJapaneseTypeName(stoneType);
             int manaCost = (int)stoneType;
-            typeManaCostText.text = $"{typeStr} <color=blue>Mana use</color> {manaCost}";
+            typeManaCostText.text = $"{typeStr} <color=blue>ひつようマナ</color> {manaCost}";
         }
 
         if (colorDamageText != null)
         {
-            string colorStr = stoneColor.ToString();
+            //string colorStr = stoneColor.ToString();
+            string colorStr = GetJapaneseColorName(stoneColor);
             int damage = (int)stoneColor;
-            colorDamageText.text = $"{colorStr} <color=red>Damage</color> {damage}";
+            colorDamageText.text = $"{colorStr} <color=red>ダメージ</color> {damage}";
         }
     }
 
@@ -301,4 +303,35 @@ public class Stone2D : MonoBehaviour
             default: return MagicStone.ColorList.black;
         }
     }
+
+
+    string GetJapaneseTypeName(MagicType type)
+{
+    switch (type)
+    {
+        case MagicType.Shadow: return "シャドウ";
+        case MagicType.Stone: return "ストーン";
+        case MagicType.Fire: return "ファイア";
+        case MagicType.Wind: return "ウィンド";
+        case MagicType.Ice: return "アイス";
+        case MagicType.Water: return "ウォーター";
+        case MagicType.Light: return "ライト";
+        default: return "不明";
+    }
+}
+
+string GetJapaneseColorName(MagicColor color)
+{
+    switch (color)
+    {
+        case MagicColor.Black: return "ブラック";
+        case MagicColor.Brown: return "ブラウン";
+        case MagicColor.Red: return "レッド";
+        case MagicColor.Yellow: return "イエロー";
+        case MagicColor.Cyan: return "シアン";
+        case MagicColor.Blue: return "ブルー";
+        case MagicColor.White: return "ホワイト";
+        default: return "不明";
+    }
+}
 }
