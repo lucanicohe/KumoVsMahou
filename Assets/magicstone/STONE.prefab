@@ -183,6 +183,7 @@ MonoBehaviour:
   waterModel: {fileID: 5437917859829421146}
   lightModel: {fileID: 314635317704577027}
   stoneMaterial: {fileID: 2100000, guid: 89957b403e59a42a3bbb1c35dfe37db6, type: 2}
+  persistenceOption: 1
 --- !u!54 &2890267287391381446
 Rigidbody:
   m_ObjectHideFlags: 0

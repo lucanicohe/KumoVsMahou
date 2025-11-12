@@ -1,152 +1,44 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class MagicForge : MonoBehaviour
 {
+    public static MagicForge instance { get; private set; }
 
-    // refrences 
-    [SerializeField] private GameObject forgeUIPanel;
-    [SerializeField] private Dropdown typeDropdown;
-    [SerializeField] private Dropdown colorDropdown;
+    private bool _insideForge = false;
 
-
-
-    //which stone
-    [SerializeField] private MagicStone targetStone;
-
-
-
-    //player 
-    [SerializeField] private GameObject player;
-
-
-
-    private bool isUIOpen = false;
-
-
-
-    void Start()
+    void Awake()
     {
-        if (forgeUIPanel != null)
-            forgeUIPanel.SetActive(false);
-
-        SetupDropdowns();
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 
-
-
-
-    void SetupDropdowns()
+    void OnTriggerEnter(Collider other)
     {
-        if (typeDropdown != null)
-        {
-            typeDropdown.ClearOptions();
-            List<string> typeOptions = new List<string> { "shadow", "stone", "fire", "wind", "ice", "water", "light" };
-            typeDropdown.AddOptions(typeOptions);
-            typeDropdown.onValueChanged.AddListener(OnTypeChanged);
-        }
-
-        if (colorDropdown != null)
-        {
-            colorDropdown.ClearOptions();
-            List<string> colorOptions = new List<string> { "black", "brown", "red", "yellow", "cyan", "blue", "white" };
-            colorDropdown.AddOptions(colorOptions);
-            colorDropdown.onValueChanged.AddListener(OnColorChanged);
-        }
+        if (!other.CompareTag("Player")) return;
+        _insideForge = true;
+        UIController.instance.EKEY("Eキーでつかう");
     }
 
-
-
-    public void Touched()
+    void OnTriggerExit(Collider other)
     {
-        if (isUIOpen)
-        {
-            CloseUI();
-        }
-        else
-        {
-            OpenUI();
-        }
+        if (!other.CompareTag("Player")) return;
+        _insideForge = false;
+        UIController.instance.EKEY("");
     }
-
-
-
-
-    void OpenUI()
-    {
-        if (forgeUIPanel != null)
-        {
-            forgeUIPanel.SetActive(true);
-            isUIOpen = true;
-
-            if (player != null)
-            {
-                Cursor.lockState = CursorLockMode.None;
-                Cursor.visible = true;
-            }
-
-            if (targetStone != null)
-            {
-                typeDropdown.value = (int)targetStone.stoneType;
-                colorDropdown.value = (int)targetStone.stoneColor;
-            }
-        }
-    }
-
-
-
-
-    void CloseUI()
-    {
-        if (forgeUIPanel != null)
-        {
-            forgeUIPanel.SetActive(false);
-            isUIOpen = false;
-
-            if (player != null)
-            {
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
-            }
-        }
-    }
-
-
-
-
-    void OnTypeChanged(int index)
-    {
-        if (targetStone != null)
-        {
-            targetStone.stoneType = (MagicStone.TypeList)index;
-            targetStone.OnValidate();
-            Debug.Log($"Forge: Type changed to {targetStone.stoneType}");
-        }
-    }
-
-
-
-
-    void OnColorChanged(int index)
-    {
-        if (targetStone != null)
-        {
-            targetStone.stoneColor = (MagicStone.ColorList)index;
-            targetStone.OnValidate();
-            Debug.Log($"Forge: Color changed to {targetStone.stoneColor}");
-        }
-    }
-
-
-
 
     void Update()
     {
-        if (isUIOpen && Input.GetKeyDown(KeyCode.Escape))
+        if (_insideForge && Input.GetKeyDown(KeyCode.E))
         {
-            CloseUI();
+            Inventory.instance.ToggleForge();   // <-- now Inventory handles everything
+            UIController.instance.EKEY("");
         }
     }
 }

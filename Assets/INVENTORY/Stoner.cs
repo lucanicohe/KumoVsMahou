@@ -13,6 +13,7 @@ public class Stoner : MonoBehaviour
     [SerializeField] private Stone2D[] stoneInventoryArray = new Stone2D[20];
 
     private const int InventoryCapacity = 20;
+    private bool hasBoundOnce = false;
 
     void Awake()
     {
@@ -49,17 +50,17 @@ public class Stoner : MonoBehaviour
     // Try to populate stoneInventoryArray if it appears unassigned.
     public void TryRebindIfNeeded()
     {
+        if (hasBoundOnce) return;   // ✅ Prevents rebinding every scene
+
         bool needRebind = false;
         if (stoneInventoryArray == null)
             needRebind = true;
         else
         {
-            // if most slots are null, attempt a rebind
             int nullCount = 0;
             for (int i = 0; i < stoneInventoryArray.Length; i++)
-            {
                 if (stoneInventoryArray[i] == null) nullCount++;
-            }
+
             if (nullCount > stoneInventoryArray.Length / 2)
                 needRebind = true;
         }
@@ -72,14 +73,13 @@ public class Stoner : MonoBehaviour
                 int len = Mathf.Min(stoneInventoryArray.Length, found.Length);
                 for (int i = 0; i < len; i++)
                     stoneInventoryArray[i] = found[i];
-                Debug.Log($"[Stoner] Rebound {found.Length} Stone2D slots from scene.");
-            }
-            else
-            {
-                Debug.Log("[Stoner] TryRebindIfNeeded: no Stone2D found in scene.");
+
+                hasBoundOnce = true;   // ✅ LOCK binding forever
+                Debug.Log("[Stoner] Bound stones ONCE and locked.");
             }
         }
     }
+
 
     // This is the original, working immediate pickup logic — we preserve it.
     public void PickupStone(MagicType type, MagicColor color)
@@ -113,6 +113,7 @@ public class Stoner : MonoBehaviour
                     slot.gameObject.SetActive(true);
                     slot.UpdateVisuals();
                     Debug.Log($"[Stoner] Activated stone at index {i} with {color} {type}");
+                    Inventory.instance.SaveInventory();
                     return;
                 }
             }

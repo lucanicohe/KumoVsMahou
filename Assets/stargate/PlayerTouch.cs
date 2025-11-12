@@ -29,12 +29,12 @@ public class PlayerTouch : MonoBehaviour
                     button.Touched();
                 }
 
-                MagicForge forge = hit.collider.GetComponent<MagicForge>();
-                if (forge != null)
-                {
+                //MagicForge forge = hit.collider.GetComponent<MagicForge>();
+                //if (forge != null)
+                //{
                     //Debug.Log($"[PlayerTouch] using forge: {forge.name}");
-                    forge.Touched();
-                }
+                    //forge.Touched();
+                //}
             }
             else
             {

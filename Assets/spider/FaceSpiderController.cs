@@ -12,17 +12,37 @@ public class FaceSpiderController : MonoBehaviour
     private bool isAttached = false;
     private Coroutine damageCoroutine;
 
+
+    [SerializeField] private GameObject destroyParticlePrefab; // particle prefab for spider death
+
+    [SerializeField] private GameObject _tensionImage; // UI image for tension
+
+    [SerializeField] private AudioSource _tensionAudio; // audio for tension
+
+
+    
+
+
+
+
+
+
+
+
     public void SetStats(SpiderStats spiderStats)
     {
         stats = spiderStats;
         UpdateClickRequirement();
+        clickCounter = 0;
+
+        AttachToPlayer();
     }
 
-    void Start()
+    /*void Start()
     {
         AttachToPlayer();
         _staff.SetActive(false); 
-    }
+    }*/
 
     void Update()
     {
@@ -36,9 +56,34 @@ public class FaceSpiderController : MonoBehaviour
                 DetachFromPlayer();
                 _staff.SetActive(true);
             }
-            
+
         }
     }
+
+    void OnEnable()
+    {
+        clickCounter = 0;
+        isAttached = false;
+
+        // hide staff at start
+        if (_staff != null)
+            _staff.SetActive(false);
+
+        // show tension UI
+        if (_tensionImage != null)
+            _tensionImage.SetActive(true);
+
+        // play tension audio
+        if (_tensionAudio != null)
+            _tensionAudio.Play();
+
+        AttachToPlayer();
+
+        // Show "press mouse repeatedly" UI in Japanese
+        UIController.instance.EKEY("まうすを クリックせよ!!!");
+    }
+
+
 
     void UpdateClickRequirement()
     {
@@ -72,13 +117,28 @@ public class FaceSpiderController : MonoBehaviour
 
     void DetachFromPlayer()
     {
+        // spawn destroy particle
+        if (destroyParticlePrefab != null)
+            Instantiate(destroyParticlePrefab, transform.position, Quaternion.identity);
+
+        // hide tension image
+        if (_tensionImage != null)
+            _tensionImage.SetActive(false);
+
+        // stop tension audio
+        if (_tensionAudio != null && _tensionAudio.isPlaying)
+            _tensionAudio.Stop();
+
+        // remove from scene
         gameObject.SetActive(false);
+
         clickCounter = 0;
         isAttached = false;
 
         if (damageCoroutine != null)
             StopCoroutine(damageCoroutine);
     }
+
 
     IEnumerator DamagePlayerOverTime()
     {

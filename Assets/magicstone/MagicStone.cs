@@ -23,6 +23,19 @@ public class MagicStone : MonoBehaviour
 
     private bool _collided = false;
 
+
+    // --- NEW ENUM FOR DESTROY OPTION ---
+    public enum ScenePersistenceOption
+    {
+        DontDestroy, // keep as before
+        DestroyOnSceneChange // new option
+    }
+
+    public ScenePersistenceOption persistenceOption = ScenePersistenceOption.DontDestroy;
+
+
+
+
     public enum TypeList
     {
         shadow, stone, fire, wind, ice, water, light
@@ -41,7 +54,11 @@ public class MagicStone : MonoBehaviour
 
     void Awake()
     {
-        DontDestroyOnLoad(gameObject);
+        // Only persist if DontDestroy is selected
+        if (persistenceOption == ScenePersistenceOption.DontDestroy)
+        {
+            DontDestroyOnLoad(gameObject);
+        }
     }
 
     void OnEnable()
@@ -56,7 +73,14 @@ public class MagicStone : MonoBehaviour
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        SyncWithActiveSlot(); // sync with active slot after scene loads
+        // If DestroyOnSceneChange is selected, destroy this object when a new scene loads
+        if (persistenceOption == ScenePersistenceOption.DestroyOnSceneChange)
+        {
+            Destroy(gameObject);
+            return; // exit early to avoid extra logic after destruction
+        }
+
+        SyncWithActiveSlot(); // keep original behavior for syncing
     }
 
     // --- NEW METHODS ---
@@ -285,10 +309,11 @@ public class MagicStone : MonoBehaviour
             case ColorList.blue: return MagicColor.Blue;
             case ColorList.white: return MagicColor.White;
             default: return MagicColor.Black;
+            
         }
     }
 
-    TypeList ConvertTypeToTypeList(MagicType type)
+    public TypeList ConvertTypeToTypeList(MagicType type)
     {
         switch (type)
         {
@@ -303,7 +328,7 @@ public class MagicStone : MonoBehaviour
         }
     }
 
-    ColorList ConvertColorToColorList(MagicColor color)
+    public ColorList ConvertColorToColorList(MagicColor color)
     {
         switch (color)
         {
