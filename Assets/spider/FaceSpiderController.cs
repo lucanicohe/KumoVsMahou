@@ -48,7 +48,7 @@ public class FaceSpiderController : MonoBehaviour
     {
         if (!gameObject.activeSelf) return;
 
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(1))
         {
             clickCounter++;
             if (clickCounter >= clicksToDetach)
@@ -80,7 +80,7 @@ public class FaceSpiderController : MonoBehaviour
         AttachToPlayer();
 
         // Show "press mouse repeatedly" UI in Japanese
-        UIController.instance.EKEY("まうすを クリックせよ!!!");
+        UIController.instance.EKEY("<b>みぎマウス</b>をクリック!!");
     }
 
 

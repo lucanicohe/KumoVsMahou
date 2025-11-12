@@ -97,7 +97,7 @@ public class UltimateMagicStaff : MonoBehaviour
         if (castTimer > 0)
             castTimer -= Time.deltaTime;
 
-        if (Input.GetKeyDown(KeyCode.C) && castTimer <= 0f)
+        if (Input.GetKeyDown(KeyCode.Mouse0) && castTimer <= 0f)
             StartCasting();
 
         UpdateManaBar();
