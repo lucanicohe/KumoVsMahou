@@ -5047,6 +5047,7 @@ MonoBehaviour:
   rotationAxis: 1
   angle: 15
   duration: 0.2
+  spiderAI: {fileID: 0}
 --- !u!1 &3610630463158496338
 GameObject:
   m_ObjectHideFlags: 0
@@ -5622,6 +5623,7 @@ MonoBehaviour:
   rotationAxis: 2
   angle: 15
   duration: 0.2
+  spiderAI: {fileID: 0}
 --- !u!1 &3857294135748982444
 GameObject:
   m_ObjectHideFlags: 0
@@ -6827,7 +6829,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &3378537807158091841
 Transform:
   m_ObjectHideFlags: 0
@@ -7464,6 +7466,7 @@ MonoBehaviour:
   rotationAxis: 1
   angle: -15
   duration: 0.2
+  spiderAI: {fileID: 0}
 --- !u!1 &4749033796246785105
 GameObject:
   m_ObjectHideFlags: 0
@@ -7990,6 +7993,7 @@ MonoBehaviour:
   rotationAxis: 2
   angle: -15
   duration: 0.2
+  spiderAI: {fileID: 0}
 --- !u!1 &5050940515148115347
 GameObject:
   m_ObjectHideFlags: 0
@@ -8441,6 +8445,7 @@ MonoBehaviour:
   rotationAxis: 2
   angle: -15
   duration: 0.2
+  spiderAI: {fileID: 0}
 --- !u!1 &5433073609045216686
 GameObject:
   m_ObjectHideFlags: 0
@@ -8564,6 +8569,7 @@ MonoBehaviour:
   rotationAxis: 1
   angle: -15
   duration: 0.2
+  spiderAI: {fileID: 0}
 --- !u!1 &5475207046095857006
 GameObject:
   m_ObjectHideFlags: 0
@@ -8687,6 +8693,7 @@ MonoBehaviour:
   rotationAxis: 1
   angle: 15
   duration: 0.2
+  spiderAI: {fileID: 0}
 --- !u!1 &5531688005509176431
 GameObject:
   m_ObjectHideFlags: 0
@@ -9555,6 +9562,7 @@ MonoBehaviour:
   rotationAxis: 2
   angle: 15
   duration: 0.2
+  spiderAI: {fileID: 0}
 --- !u!1 &6459813733094148779
 GameObject:
   m_ObjectHideFlags: 0
@@ -12928,7 +12936,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

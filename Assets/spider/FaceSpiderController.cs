@@ -122,6 +122,9 @@ public class FaceSpiderController : MonoBehaviour
 
     void DetachFromPlayer()
     {
+
+        UIController.instance.EKEY("");
+
         // spawn destroy particle
         if (destroyParticlePrefab != null)
             Instantiate(destroyParticlePrefab, transform.position, Quaternion.identity);
@@ -154,5 +157,5 @@ public class FaceSpiderController : MonoBehaviour
         }
     }
 
-    
+
 }

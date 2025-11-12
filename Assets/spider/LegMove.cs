@@ -14,6 +14,10 @@ public class LegMove : MonoBehaviour
     [SerializeField] private float angle = 15f;     // how much move
     [SerializeField] private float duration = 1f;   // movement speed 
 
+    [SerializeField] private  SpiderAI spiderAI; 
+
+
+
 
 
 
@@ -23,6 +27,11 @@ public class LegMove : MonoBehaviour
 
     void Update()
     {
+
+         if (spiderAI == null || !spiderAI.IsChasing) return;
+
+
+
         timer += Time.deltaTime;
         float t = Mathf.PingPong(timer / duration, 1f);
         float currentAngle = Mathf.Lerp(0f, angle, t);

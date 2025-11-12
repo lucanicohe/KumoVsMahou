@@ -5,7 +5,8 @@ using UnityEngine;
 public enum SpiderBehavior
 {
     Normal,
-    Stone
+    Stone,
+    Wind
 }
 
 public class SpiderAI : MonoBehaviour
@@ -37,24 +38,94 @@ public class SpiderAI : MonoBehaviour
     public SpiderBehavior behavior;
     private Vector3 initialPosition;
 
-    [SerializeField] private AudioSource chaseAudio; 
-    [SerializeField] private AudioSource _emergeAudio; 
+    [SerializeField] private AudioSource chaseAudio;
+    [SerializeField] private AudioSource _emergeAudio;
+    [SerializeField] private AudioSource _teleportudio;
+
+
+
+
+    //public Transform pointA; // normal gravity
+
+    //public Transform pointB; // sideways gravity
+
+
+    private Transform targetPoint; // the point the spider is currently moving toward
+
+    //public float teleportSpeed = 5f; // speed at which it moves between points
+
+    private bool useSidewaysGravity = false; // toggled based on point
+
+    private float teleportTimer = 0f;   // counts time
+    //public float teleportInterval = 3f; // seconds between teleports
+
+    private bool hasTeleportedToB = false;
+
+    public float _movex = 6f;
+    public float _movey = 4f;
+
+    public bool IsChasing; 
+
+
+
+
+
+
+
 
     void Start()
     {
-        if (player == null)
-            player = GameObject.FindGameObjectWithTag("Player")?.transform;
+        //if (player == null)
+        //player = GameObject.FindGameObjectWithTag("Player")?.transform;
 
         if (faceSpiderObject != null)
             faceSpiderObject.SetActive(false);
 
         cc = GetComponent<CharacterController>();
-        if (cc == null)
-            Debug.LogWarning("[SpiderAI] No CharacterController found on " + gameObject.name);
+        //if (cc == null)
+        //Debug.LogWarning("[SpiderAI] No CharacterController found on " + gameObject.name);
 
         // IMPORTANT: remember current starting position (used by stone emerge reset)
         initialPosition = transform.position;
+
+        //if (behavior == SpiderBehavior.Wind && !isTeleporting)
+        //StartCoroutine(WindTeleportRoutine());
+
+        if (behavior == SpiderBehavior.Wind)
+        {
+            //targetPoint = pointB;
+            useSidewaysGravity = false;
+        }
+
     }
+    /*
+    IEnumerator WindTeleportRoutine()
+{
+    isTeleporting = true;
+
+    while (behavior == SpiderBehavior.Wind)
+    {
+        // teleport forward
+        Vector3 forwardJump = transform.forward * teleportDistance;
+        cc.enabled = false;  // temporarily disable CharacterController so Move() doesn't interfere
+        transform.position += forwardJump;
+        cc.enabled = true;
+
+        yield return new WaitForSeconds(teleportInterval);
+
+        // teleport backward
+        Vector3 backwardJump = -transform.forward * teleportDistance;
+        cc.enabled = false;
+        transform.position += backwardJump;
+        cc.enabled = true;
+
+        yield return new WaitForSeconds(teleportInterval);
+    }
+
+    isTeleporting = false;
+}
+
+*/ 
 
     void Update()
     {
@@ -78,13 +149,14 @@ public class SpiderAI : MonoBehaviour
         }
 
         // chasing
-        if (distance <= detectionRadius)
+        // chasing (but skip automatic chasing for Wind — Wind handles its own teleport+chase)
+        if (distance <= detectionRadius && behavior != SpiderBehavior.Wind)
             ChasePlayer();
 
-        // Vertical / gravity logic:
+
+        // Gravity logic
         if (behavior == SpiderBehavior.Stone)
         {
-            // stone spiders use vertical velocity for their jump/landing
             if (cc != null)
             {
                 if (!cc.isGrounded)
@@ -93,25 +165,75 @@ public class SpiderAI : MonoBehaviour
                 }
                 else if (isJumping)
                 {
-                    // landed
                     isJumping = false;
                     velocity.y = 0f;
                 }
 
-                // Move vertical component separately — ChasePlayer already moved horizontal each frame.
                 cc.Move(velocity * Time.deltaTime);
             }
         }
+        else if (behavior == SpiderBehavior.Wind)
+        {
+            float distanceToPlayer = Vector3.Distance(transform.position, player.position);
+
+            if (!hasTeleportedToB && distanceToPlayer <= detectionRadius)
+            {
+                hasTeleportedToB = true;
+
+                _teleportudio.Play(); 
+
+                if (cc != null) cc.enabled = false;
+
+                // Teleport logic using X offset and Z rotation
+                Vector3 newPos = transform.position;
+                newPos.x += _movex;  
+                newPos.y -= _movey;  
+                transform.position = newPos;
+
+                transform.rotation = Quaternion.Euler(0f, transform.rotation.eulerAngles.y, 0f); // Z rotation 0
+                velocity = Vector3.zero;
+
+                if (cc != null) cc.enabled = true;
+            }
+
+            if (hasTeleportedToB)
+            {
+                ChasePlayer();
+
+                // Apply gravity while chasing
+                if (cc != null)
+                {
+                    if (!cc.isGrounded)
+                        velocity.y += gravity * Time.deltaTime;
+                    else
+                        velocity.y = 0f;
+
+                    cc.Move(velocity * Time.deltaTime);
+                }
+            }
+        }
+
+
+
+
+
+
+
+
+
+
         else
         {
-            // Normal spiders: clear only vertical velocity so no leakage from stone logic
-            velocity.y = 0f;
-            // DO NOT call cc.Move(Vector3.zero) here — ChasePlayer already handled movement.
+            // Normal spider
+            velocity = Vector3.zero;
         }
+
     }
 
     void ChasePlayer()
     {
+        IsChasing = true; 
+
         if (player == null || cc == null) return;
 
         Vector3 dir = (player.position - transform.position).normalized;
