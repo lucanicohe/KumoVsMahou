@@ -107,13 +107,18 @@ public class FaceSpiderController : MonoBehaviour
 
         isAttached = true;
 
-       //_staff.SetActive(false); 
+        if (_tensionImage != null)
+            _tensionImage.SetActive(true);
+
+        if (_tensionAudio != null && !_tensionAudio.isPlaying)
+            _tensionAudio.Play();
 
         if (damageCoroutine != null)
             StopCoroutine(damageCoroutine);
 
         damageCoroutine = StartCoroutine(DamagePlayerOverTime());
     }
+
 
     void DetachFromPlayer()
     {
@@ -148,4 +153,6 @@ public class FaceSpiderController : MonoBehaviour
             yield return new WaitForSeconds(1f);
         }
     }
+
+    
 }
