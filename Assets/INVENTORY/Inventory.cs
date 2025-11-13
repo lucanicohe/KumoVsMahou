@@ -28,6 +28,8 @@ public class Inventory : MonoBehaviour
     public Button forgeButton2;
     public Button combineButton;
 
+    public Button _deletebutton;
+
     private bool _forgeOpen = false;
     // --------------------------------
 
@@ -79,6 +81,10 @@ public class Inventory : MonoBehaviour
         if (forgeEmpty1 != null) forgeEmpty1.gameObject.SetActive(false);
         if (forgeEmpty2 != null) forgeEmpty2.gameObject.SetActive(false);
 
+        if (_deletebutton != null)
+            _deletebutton.onClick.AddListener(OnDeleteButtonPressed);
+    
+
         // -----------------------------------------------------------
 
         RestoreInventory();
@@ -100,6 +106,27 @@ public class Inventory : MonoBehaviour
         //  NOW sync to the correct restored active slot
         SyncPlayerStoneWithActiveSlot();
     }
+
+    void OnDeleteButtonPressed()
+    {
+        // get the selected stone from Stoner
+        Stone2D selectedStone = stoner.GetCurrentlyActiveStone();
+        if (selectedStone == null)
+        {
+            Debug.Log("No stone selected to delete.");
+            return;
+        }
+
+        // disable it
+        selectedStone.gameObject.SetActive(false);
+        selectedStone.Deselect();
+
+        // save updated inventory
+        SaveInventory();
+
+        Debug.Log($"Deleted stone: {selectedStone.stoneColor} {selectedStone.stoneType}");
+    }
+
 
 
     void Update()

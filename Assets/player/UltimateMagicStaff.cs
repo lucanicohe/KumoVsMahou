@@ -94,6 +94,11 @@ public class UltimateMagicStaff : MonoBehaviour
 
     void Update()
     {
+        // stop firing if inventory or forge is open
+        if (Inventory.instance != null &&
+            (Inventory.instance.IsInventoryOpen() || Inventory.instance._forgeUI.activeSelf))
+            return;
+
         if (castTimer > 0)
             castTimer -= Time.deltaTime;
 
@@ -102,6 +107,7 @@ public class UltimateMagicStaff : MonoBehaviour
 
         UpdateManaBar();
     }
+
 
     void UpdateManaBar()
     {
