@@ -14,7 +14,10 @@ public class LegMove : MonoBehaviour
     [SerializeField] private float angle = 15f;     // how much move
     [SerializeField] private float duration = 1f;   // movement speed 
 
-    [SerializeField] private  SpiderAI spiderAI; 
+    [SerializeField] private SpiderAI spiderAI; 
+    
+
+    [SerializeField] private bool moveOnlyWhenChasing = true;
 
 
 
@@ -28,7 +31,8 @@ public class LegMove : MonoBehaviour
     void Update()
     {
 
-         if (spiderAI == null || !spiderAI.IsChasing) return;
+         if (moveOnlyWhenChasing && (spiderAI == null || !spiderAI.IsChasing)) 
+            return;
 
 
 

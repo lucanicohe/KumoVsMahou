@@ -1,32 +1,49 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class GateColliderController : MonoBehaviour
 {
-    [SerializeField] private string defaultWorldName; // maybe not needed?
+    [SerializeField] private string defaultWorldName;
+    [SerializeField] private PixelationController pixelController; 
+
+    
+
+    private UIButtonManager buttonManager;
+
+    private void Start()
+    {
+        buttonManager = FindObjectOfType<UIButtonManager>();
+        if (buttonManager == null)
+            Debug.LogError("UIButtonManager not found in scene!");
+    }
 
     private void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag("Player")) return;
+        if (buttonManager == null) return;
 
-
-
-
-        //  the active condition from ButtonController
-        string condition = ButtonController.allButtons.Count > 0 ? ButtonController.allButtons[0].GetActiveCondition() : "";
-
+        string condition = buttonManager.GetActiveCondition();
         if (string.IsNullOrEmpty(condition))
         {
             Debug.Log("Gate entered but no valid sequence active!");
             return;
         }
 
+        // Trigger pixelation + movement animation, then load scene
+        if (pixelController != null)
+        {
+            pixelController.StartPixelation(() => LoadSceneByCondition(condition));
+        }
+        else
+        {
+            LoadSceneByCondition(condition);
+        }
 
+        buttonManager.ClearActiveCondition();
+    }
 
-
-        // scene based on condition
+    private void LoadSceneByCondition(string condition)
+    {
         switch (condition)
         {
             case "home": SceneManager.LoadScene("HomeWorld"); break;
@@ -38,23 +55,10 @@ public class GateColliderController : MonoBehaviour
             case "boss": SceneManager.LoadScene("BossWorld"); break;
             default:
                 if (!string.IsNullOrEmpty(defaultWorldName))
-                {
                     SceneManager.LoadScene(defaultWorldName);
-                }
                 else
-                {
                     Debug.Log("Unknown condition: " + condition);
-                }
                 break;
-        }
-
-
-
-
-        //  condition so gate can't be reused until new sequence
-        foreach (var btn in ButtonController.allButtons)
-        {
-            btn.ClearActiveCondition();
         }
     }
 }

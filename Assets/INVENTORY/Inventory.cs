@@ -13,6 +13,14 @@ public class Inventory : MonoBehaviour
     [SerializeField] private Stoner stoner;
     [SerializeField] private MagicStone playerMagicStone;
     [SerializeField] private Canvas inventoryCanvas;
+
+
+    [SerializeField] private GameObject trueInventoryEmptyObject;
+
+    [SerializeField] private LookController lookController;
+
+
+
     public GameObject _forgeUI;
 
     private bool inventoryOpen = false;
@@ -131,7 +139,7 @@ public class Inventory : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.I))
+        if (Input.GetKeyDown(KeyCode.Tab))
             ToggleInventory();
     }
 
@@ -145,9 +153,20 @@ public class Inventory : MonoBehaviour
         Cursor.visible = inventoryOpen;
         Cursor.lockState = inventoryOpen ? CursorLockMode.None : CursorLockMode.Locked;
 
+        // ---- enable/disable true inventory empty object ----
+        if (trueInventoryEmptyObject != null)
+            trueInventoryEmptyObject.SetActive(inventoryOpen);
+
+        // ---- ADDED: enable/disable LookController ----
+        if (lookController != null)
+            lookController.enabled = !inventoryOpen;
+        // -----------------------------------------------------
+
         _forgeUI.SetActive(false);
         _forgeOpen = false;
     }
+
+
 
     // -------- CALLED BY MAGICFORGE NOW ----------
     public void ToggleForge()
@@ -162,7 +181,17 @@ public class Inventory : MonoBehaviour
 
         if (_forgeUI != null)
             _forgeUI.SetActive(_forgeOpen);
+
+        if (trueInventoryEmptyObject != null)
+            trueInventoryEmptyObject.SetActive(false);
+
+        // ---- ADDED: disable LookController while forge is open ----
+        if (lookController != null)
+            lookController.enabled = !_forgeOpen;
+        // ------------------------------------------------------------
     }
+
+
     // --------------------------------------------
 
     // --------- MOVED MAGICFORGE LOGIC BELOW ---------
@@ -227,17 +256,39 @@ public class Inventory : MonoBehaviour
 
     public void OnCombineButtonPressed()
     {
-        if (!forgeEmpty1.gameObject.activeSelf || !forgeEmpty2.gameObject.activeSelf) return;
+        if (!forgeEmpty1.gameObject.activeSelf || !forgeEmpty2.gameObject.activeSelf)
+            return;
 
-        MagicType combinedType = Random.value < 0.5f ? forgeEmpty1.stoneType : forgeEmpty2.stoneType;
-        MagicColor combinedColor = Random.value < 0.5f ? forgeEmpty1.stoneColor : forgeEmpty2.stoneColor;
+        // Get originals
+        MagicType type1 = forgeEmpty1.stoneType;
+        MagicColor color1 = forgeEmpty1.stoneColor;
 
-        stoner.PickupStone(combinedType, combinedColor);
+        MagicType type2 = forgeEmpty2.stoneType;
+        MagicColor color2 = forgeEmpty2.stoneColor;
+
+        // Build the two allowed cross combinations
+        List<(MagicType, MagicColor)> results = new List<(MagicType, MagicColor)>();
+
+        // Combination A: type1 + color2
+        results.Add((type1, color2));
+
+        // Combination B: type2 + color1
+        results.Add((type2, color1));
+
+        // Randomly pick one of these 2, guaranteed NOT to be identical to the originals
+        int pick = Random.Range(0, results.Count);
+        MagicType finalType = results[pick].Item1;
+        MagicColor finalColor = results[pick].Item2;
+
+        // Add new stone to inventory
+        stoner.PickupStone(finalType, finalColor);
         SaveInventory();
 
+        // Clear forge slots
         forgeEmpty1.gameObject.SetActive(false);
         forgeEmpty2.gameObject.SetActive(false);
     }
+
 
     // -------- SAVE + RESTORE (unchanged) --------
 

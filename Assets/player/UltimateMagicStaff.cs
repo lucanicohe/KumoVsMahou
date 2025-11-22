@@ -29,6 +29,11 @@ public class UltimateMagicStaff : MonoBehaviour
 {
     [SerializeField] private MagicStone attachedStone;
 
+    [SerializeField] private MagicHitboxDetector hitbox;
+    
+
+
+
     [SerializeField] private GameObject magicPrefab;
     [SerializeField] private Transform castPoint;
     [SerializeField] private float castRange = 50f;
@@ -59,6 +64,8 @@ public class UltimateMagicStaff : MonoBehaviour
 
 
     //[SerializeField] private GameObject hitEffectPrefab;
+
+    [SerializeField] private StoneRotator[] stoneRotators; 
 
 
 
@@ -128,36 +135,48 @@ public class UltimateMagicStaff : MonoBehaviour
         attachedStone = null;
     }
 
-    void StartCasting()
+void StartCasting()
+{
+    if (attachedStone == null)
     {
-        if (attachedStone == null)
-        {
-            Debug.Log("No stone attached!");
-            return;
-        }
-
-        MagicType type = attachedStone.GetMagicType();
-        MagicColor color = attachedStone.GetMagicColor();
-
-        int manaCost = (int)type;
-
-        if (!playerStats.HasEnoughMana(manaCost))
-        {
-            Debug.Log("Not enough mana!");
-            return;
-        }
-
-        playerStats.ConsumeMana(manaCost);
-        castTimer = castCooldown;
-
-        PlayMagicSound(type);
-
-        if (animator != null)
-            animator.Play("animationtest", 0, 0f);
-
-        SpawnMagicParticles(type, color);
-        CastRaycast(color);
+        Debug.Log("No stone attached!");
+        return;
     }
+
+    // 🔥 BOOST ALL STONE ROTATORS FOR 1s
+    if (stoneRotators != null)
+    {
+        for (int i = 0; i < stoneRotators.Length; i++)
+        {
+            if (stoneRotators[i] != null)
+                stoneRotators[i].BoostRotation(200f, 1f);
+        }
+    }
+
+    MagicType type = attachedStone.GetMagicType();
+    MagicColor color = attachedStone.GetMagicColor();
+
+    int manaCost = (int)type;
+
+    if (!playerStats.HasEnoughMana(manaCost))
+    {
+        Debug.Log("Not enough mana!");
+        return;
+    }
+
+    playerStats.ConsumeMana(manaCost);
+    castTimer = castCooldown;
+
+    PlayMagicSound(type);
+
+    if (animator != null)
+        animator.Play("animationtest", 0, 0f);
+
+    SpawnMagicParticles(type, color);
+    CastRaycast(color);
+}
+
+
 
     void SpawnMagicParticles(MagicType type, MagicColor color)
     {
@@ -201,22 +220,25 @@ public class UltimateMagicStaff : MonoBehaviour
 
     void CastRaycast(MagicColor color)
     {
-        Ray ray = Camera.main.ScreenPointToRay(
-            new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0)
-        );
-
-        if (Physics.Raycast(ray, out RaycastHit hit, castRange))
-        {
-            SpiderStats spider = hit.collider.GetComponent<SpiderStats>();
-            if (spider != null)
-            {
-                // Pass both the spider and the hit point to the coroutine
-                StartCoroutine(DelayedDamage(spider, (int)color, hit.point, 0.7f));
-            }
-        }
-
-        //Debug.DrawRay(ray.origin, ray.direction * castRange, Color.red, 0.2f);
+        int damage = (int)color;
+        StartCoroutine(DelayedHitboxDamage(damage, 0.5f)); // 1 second delay
     }
+
+    private IEnumerator DelayedHitboxDamage(int damage, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        foreach (SpiderStats s in hitbox.spidersInRange)
+        {
+            if (s != null)
+                s.TakeDamage(damage);
+        }
+    }
+
+
+
+
+
 
 
     private IEnumerator DelayedDamage(SpiderStats spider, int damage, Vector3 hitPoint, float delay)

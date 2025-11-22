@@ -599,6 +599,7 @@ MonoBehaviour:
   angle: 15
   duration: 0.2
   spiderAI: {fileID: 852652910084021005}
+  moveOnlyWhenChasing: 1
 --- !u!1 &885981767714290886
 GameObject:
   m_ObjectHideFlags: 0
@@ -839,6 +840,7 @@ MonoBehaviour:
   angle: 15
   duration: 0.2
   spiderAI: {fileID: 852652910084021005}
+  moveOnlyWhenChasing: 1
 --- !u!1 &1308192558001388362
 GameObject:
   m_ObjectHideFlags: 0
@@ -1211,6 +1213,7 @@ MonoBehaviour:
   angle: 15
   duration: 0.2
   spiderAI: {fileID: 852652910084021005}
+  moveOnlyWhenChasing: 1
 --- !u!1 &2792794339915030829
 GameObject:
   m_ObjectHideFlags: 0
@@ -1529,9 +1532,12 @@ MonoBehaviour:
   chaseAudio: {fileID: 8765698620367273108}
   _emergeAudio: {fileID: 904945731710406555}
   _teleportudio: {fileID: 2387374775969900469}
+  playerStats: {fileID: 0}
+  iceDamagePerTick: 10
   _movex: 6
   _movey: 4
   IsChasing: 0
+  model: {fileID: 0}
 --- !u!143 &6773782662968511030
 CharacterController:
   m_ObjectHideFlags: 0
@@ -1607,6 +1613,7 @@ MonoBehaviour:
   angle: -15
   duration: 0.2
   spiderAI: {fileID: 852652910084021005}
+  moveOnlyWhenChasing: 1
 --- !u!1 &4279373371202589203
 GameObject:
   m_ObjectHideFlags: 0
@@ -1656,6 +1663,7 @@ MonoBehaviour:
   angle: 15
   duration: 0.2
   spiderAI: {fileID: 852652910084021005}
+  moveOnlyWhenChasing: 1
 --- !u!1 &4746048910039940051
 GameObject:
   m_ObjectHideFlags: 0
@@ -2267,6 +2275,7 @@ MonoBehaviour:
   angle: -15
   duration: 0.2
   spiderAI: {fileID: 852652910084021005}
+  moveOnlyWhenChasing: 1
 --- !u!1 &7064186114549934612
 GameObject:
   m_ObjectHideFlags: 0
@@ -2316,6 +2325,7 @@ MonoBehaviour:
   angle: -15
   duration: 0.2
   spiderAI: {fileID: 852652910084021005}
+  moveOnlyWhenChasing: 1
 --- !u!1 &7519356028292630587
 GameObject:
   m_ObjectHideFlags: 0
@@ -2698,6 +2708,7 @@ MonoBehaviour:
   angle: -15
   duration: 0.2
   spiderAI: {fileID: 852652910084021005}
+  moveOnlyWhenChasing: 1
 --- !u!1001 &1083638479004312436
 PrefabInstance:
   m_ObjectHideFlags: 0

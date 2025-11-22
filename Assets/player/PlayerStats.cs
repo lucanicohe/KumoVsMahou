@@ -25,6 +25,11 @@ public class PlayerStats : MonoBehaviour
     private float healthRegenCooldown = 0f;
     private float manaRegenCooldown = 0f;
 
+    
+
+
+
+
     void Start()
     {
         currentHealth = maxHealth;
@@ -124,6 +129,6 @@ public class PlayerStats : MonoBehaviour
     {
         deathImage.gameObject.SetActive(true);
         yield return new WaitForSeconds(1f);
-        SceneManager.LoadScene("HomeWorld");
+        SceneManager.LoadScene("Menu");
     }
 }

@@ -17,6 +17,7 @@ public class MagicStone : MonoBehaviour
     [SerializeField] private GameObject waterModel;
     [SerializeField] private GameObject lightModel;
 
+
     [SerializeField] private Material stoneMaterial;
 
     private MeshRenderer stoneRenderer;

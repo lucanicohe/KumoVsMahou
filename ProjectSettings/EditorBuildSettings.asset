@@ -8,7 +8,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Menu.unity
     guid: 4ec1009c6cd8b4ce4b3ec7196b344223
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/IntroWorld.unity
     guid: fc6e178021d34413cb0942e32ee4447f
   - enabled: 1
@@ -26,4 +26,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/IceWorld.unity
     guid: c9c5dc87f1f0c41c1ba9baa7db8365f5
+  - enabled: 1
+    path: Assets/Scenes/WaterWorld.unity
+    guid: 076d60c52d27d4882b36d55ab58ef116
+  - enabled: 1
+    path: Assets/Scenes/BossWorld.unity
+    guid: c9bb390ba23e444c6b740ed740d8c060
   m_configObjects: {}

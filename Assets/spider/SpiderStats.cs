@@ -118,7 +118,7 @@ public class SpiderStats : MonoBehaviour
             _spiderRenderer = GetComponent<Renderer>();
 
         if (_spiderMaterial != null && _spiderRenderer != null)
-            _spiderRenderer.sharedMaterial = _spiderMaterial;
+            _spiderRenderer.material = _spiderMaterial;
 
         switch (variant) // different material and body size
         {
@@ -129,32 +129,32 @@ public class SpiderStats : MonoBehaviour
                 transform.localScale = new Vector3(1, 1, 1);
                 break;
             case SpiderVariant.RedFire:
-                health = 40;
-                damagePerSecond = 30;
+                health = 30;
+                damagePerSecond = 20;
                 SetMaterialColor(new Color32(180, 60, 50, 255));
                 transform.localScale = new Vector3(0.5f, 0.5f, 1f);
                 break;
             case SpiderVariant.YellowWind:
-                health = 80;
-                damagePerSecond = 40;
+                health = 40;
+                damagePerSecond = 20;
                 SetMaterialColor(new Color32(230, 200, 90, 255));
                 transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
                 break;
             case SpiderVariant.CyanIce:
-                health = 160;
-                damagePerSecond = 50;
+                health = 50;
+                damagePerSecond = 20;
                 SetMaterialColor(new Color32(120, 200, 210, 255));
                 transform.localScale = new Vector3(0.9f, 0.5f, 0.9f);
                 break;
             case SpiderVariant.BlueWater:
-                health = 320;
-                damagePerSecond = 60;
+                health = 60;
+                damagePerSecond = 20;
                 SetMaterialColor(new Color32(70, 100, 200, 255));
                 transform.localScale = new Vector3(1f, 0.4f, 1f);
                 break;
             case SpiderVariant.WhiteBoss:
-                health = 640;
-                damagePerSecond = 70;
+                health = 70;
+                damagePerSecond = 20;
                 SetMaterialColor(new Color32(220, 220, 220, 255));
                 transform.localScale = new Vector3(1, 1, 1);
                 break;

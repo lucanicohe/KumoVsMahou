@@ -1,46 +1,58 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.Video;
 
 public class IntroManager : MonoBehaviour
 {
     [SerializeField] private Button startButton;
     [SerializeField] private Button endButton;
+    [SerializeField] private VideoPlayer introVideo;
+    [SerializeField] private GameObject videoUI; // RawImage or parent
+
+    [SerializeField] private AudioSource _music; 
 
     void Start()
     {
-        if (startButton != null)
-        {
-            startButton.onClick.AddListener(OnStartButtonPressed);
-        }
-        else
-        {
-            Debug.LogError("Start Button not assigned in IntroManager!");
-        }
+        _music.Play(); 
+        startButton.onClick.AddListener(OnStartButtonPressed);
+        endButton.onClick.AddListener(OnEndButtonPressed);
 
-        if (endButton != null)
-        {
-            endButton.onClick.AddListener(OnEndButtonPressed);
-        }
-        else
-        {
-            Debug.LogError("End Button not assigned in IntroManager!");
-        }
+        videoUI.SetActive(false); // hide video at start
     }
 
     void OnStartButtonPressed()
     {
-        Debug.Log("Start button pressed — resetting save file...");
         InventorySaveManager.ResetSaveToDefaultStatic();
-        SceneManager.LoadScene("IntroWorld");
+        startButton.interactable = false;
+        endButton.interactable = false;
+
+        StartCoroutine(PlayVideoThenLoad());
+    }
+
+    private IEnumerator PlayVideoThenLoad()
+    {
+        _music.Stop(); 
+        videoUI.SetActive(true);
+        introVideo.Prepare(); // IMPORTANT: Prepare video first
+
+        // Wait until video is ready
+        while (!introVideo.isPrepared)
+            yield return null;
+
+        introVideo.Play();
+
+        // Wait until video finishes
+        while (introVideo.isPlaying)
+            yield return null;
+
+        SceneManager.LoadScene("HomeWorld");
     }
 
     void OnEndButtonPressed()
     {
-        Debug.Log("End button pressed — quitting application...");
         Application.Quit();
-
-        // Optional: works in the editor for testing
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #endif
